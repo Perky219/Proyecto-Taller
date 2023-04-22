@@ -1,11 +1,59 @@
-apartados=[]
-puntos=[]
-participantes=[]
+import time
+
+def lista_participantes():
+    """
+    Se creará una lista de participantes, en la cual cada uno de los integrantes, tendrá un número de carnet.
+
+    Args:
+        nombre (str): Nombre que se le asignará a cada integrante.
+        carnet (int): Carnet que se le asignará a cada integrante.
+        carnet_existente (bool): Variable que se genera para realizar comparación de existencia, definida default como 'False'.
+        participante (dict): Toma el valor de cada diccionario dentro del ciclo 'for'.
+        participantes_str (str): Lista de participantes en string (solo para impresión).
+
+    Attributes:
+        participantes (list): Lista de participantes completa.
+    """
+    # Se crea una lista vacía para almacenar los nombres y carnets de los participantes
+    global participantes
+    participantes = []
+
+    # Se solicita al usuario que ingrese los nombres y carnets de los participantes
+    while True:
+        nombre = str(input("Ingrese el nombre completo del participante o escriba 'fin' para terminar: "))
+        if nombre.lower() == "fin":
+            break
+        carnet = int(input("Ingrese el número de carnet del participante: "))
+        # Se valida si el número de carnet ya ha sido registrado previamente
+        carnet_existente = False
+        for participante in participantes:
+            if participante["carnet"] == carnet:
+                print("Error: el número de carnet ya ha sido registrado para", participante["nombre"])
+                carnet_existente = True
+                break
+
+        # Se valida que el número de carnet sea un valor numérico
+        if not carnet.isdigit():
+            print("Error: el número de carnet debe ser un valor numérico")
+        elif not carnet_existente:
+            participantes.append({"nombre": nombre, "carnet": carnet})
+
+    # Se crea una cadena de texto con los nombres y carnets de los participantes
+    participantes_str = "\nLista de participantes:\n"
+    for participante in participantes:
+        participantes_str += participante["nombre"] + " - " + participante["carnet"] + "\n"
+
+    # Se muestra la lista de participantes registrados
+    print(participantes_str)
 
 def registro_agenda():
     """
     función que crea y organiza una agenda por apartados y puntos distribuídos en cada apartado.
     """
+    global apartados
+    global puntos
+    apartados=[]
+    puntos=[]
     while True:
         print('Ingrese el nombre del apartado que desea agregar a la agenda:')
         nuevo_apartado = input()
@@ -30,30 +78,7 @@ def registro_agenda():
         if respuesta.lower() == 'no':
             print('Su agenda está lista')
             break
-
-
-def participantes():
-    """
-    faf
-    """
-    while True:
-        print('Ingrese el participante:')
-        nuevo_participante = input()
-        if nuevo_participante.lower() not in [a.lower() for a in participantes]:
-            participantes.append(nuevo_participante)
-        else:
-            print('El participante ya está incluído en la lista')
-        
-        print('¿Desea agregar otro participante? (si/no)')
-        respuesta = input()
-        if respuesta.lower() == 'no':
-            print('Su lista de participantes está completa')
-            break
     
-
-
-import speech_recognition as sr
-import time
 def speech():
     """
     Se hará un reconocimiento de voz que imprime lo dicho por el usuario
@@ -69,9 +94,14 @@ def speech():
     Returns:
         list: Returna la lista 'text_cap' que contiene el texto entendido
     """
+    import speech_recognition as sr
+
     r = sr.Recognizer()
     i=0
+
+    global text_cap
     text_cap=[]
+
     with sr.Microphone() as source:
         while True:
             print("Intervención:\n")
