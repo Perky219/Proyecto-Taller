@@ -1,5 +1,4 @@
 import time
-
 def lista_participantes():
     """
     Se creará una lista de participantes, en la cual cada uno de los integrantes, tendrá un número de carnet.
@@ -16,68 +15,71 @@ def lista_participantes():
     """
     # Se crea una lista vacía para almacenar los nombres y carnets de los participantes
     global participantes
-    participantes = []
+    participantes=[]
 
     # Se solicita al usuario que ingrese los nombres y carnets de los participantes
     while True:
-        nombre = str(input("Ingrese el nombre completo del participante o escriba 'fin' para terminar: "))
-        if nombre.lower() == "fin":
+        nombre=input("Ingrese el nombre completo del participante o escriba 'fin' para terminar: ")
+        if nombre.lower()=="fin":
             break
-        carnet = int(input("Ingrese el número de carnet del participante: "))
+        carnet=int(input("Ingrese el número de carnet del participante: "))
         # Se valida si el número de carnet ya ha sido registrado previamente
-        carnet_existente = False
+        carnet_existente=False
         for participante in participantes:
-            if participante["carnet"] == carnet:
+            if participante["carnet"]==carnet:
                 print("Error: el número de carnet ya ha sido registrado para", participante["nombre"])
-                carnet_existente = True
+                carnet_existente=True
                 break
 
-        # Se valida que el número de carnet sea un valor numérico
+        # Se valida que el número de carnet sea un valor numérico.
         if not carnet.isdigit():
             print("Error: el número de carnet debe ser un valor numérico")
         elif not carnet_existente:
             participantes.append({"nombre": nombre, "carnet": carnet})
 
-    # Se crea una cadena de texto con los nombres y carnets de los participantes
-    participantes_str = "\nLista de participantes:\n"
-    for participante in participantes:
-        participantes_str += participante["nombre"] + " - " + participante["carnet"] + "\n"
-
-    # Se muestra la lista de participantes registrados
-    print(participantes_str)
-
 def registro_agenda():
     """
-    función que crea y organiza una agenda por apartados y puntos distribuídos en cada apartado.
-    """
-    global apartados
-    global puntos
-    apartados=[]
-    puntos=[]
-    while True:
-        print('Ingrese el nombre del apartado que desea agregar a la agenda:')
-        nuevo_apartado = input()
-        if nuevo_apartado.lower() not in [a.lower() for a in apartados]: #linea para definir que un apartado no está repetido
-            apartados.append(nuevo_apartado)
-            print(f'Ha agregado el apartado "{nuevo_apartado}" a la lista de apartados.\n')
+    Se creará un registro de agenda, que estará dividida en apartados, donde cada uno de estos tendrá puntos.
 
-            while True:
-                print('Ingrese el punto que desea agregar a la agenda:')
-                nuevo_punto = input()
-                puntos.append((nuevo_apartado, nuevo_punto))
-                print(f'Ha agregado el punto "{nuevo_punto}" al apartado "{nuevo_apartado}".\n')
-                
-                print('¿Desea agregar otro punto a la agenda? (si/no)')
-                respuesta = input()
-                if respuesta.lower() == 'no':
-                    break
-        else:
-            print('Ese apartado ya existe, agregue uno distinto')
-        print('¿Desea agregar otro apartado a la agenda? (si/no)')
-        respuesta = input()
-        if respuesta.lower() == 'no':
-            print('Su agenda está lista')
+    Args:
+        nombre_apartado (str): Apartado que se va agregar a la agenda.
+        nombre_punto (str): Punto que se va a agregar a la agenda.
+        respuesta (str): Respuesta de la persona a la pregunta '¿Agregar otro punto/apartado?'.
+
+    Attributes:
+        agenda (list): Apartados dentro de la agenda.
+        puntos (list): Puntos dentro de la agenda.
+    """
+    global agenda
+    agenda=[]
+    while True:
+        # Se solicita el nombre del apartado.
+        nombre_apartado=input("Ingrese el nombre del apartado o escriba 'fin' para terminar: ")
+        if nombre_apartado.lower()=="fin":
             break
+        
+        # Se verifica si el apartado ya existe.
+        if nombre_apartado in [a[0] for a in agenda]:
+            print(f"El apartado '{nombre_apartado}' ya existe en la agenda.")
+            continue
+        
+        # Se solicitan los puntos del apartado.
+        global puntos
+        puntos = []
+        while True:
+            nombre_punto = input("Ingrese el nombre del punto o escriba 'fin' para terminar el apartado: ")
+            if nombre_punto.lower() == "fin":
+                break
+            
+            # Se verifica si el punto ya existe en el apartado actual.
+            if nombre_punto in puntos:
+                print(f"El punto '{nombre_punto}' ya está en el apartado actual.")
+                continue
+            
+            puntos.append(nombre_punto)
+        
+        # Se agrega el apartado y sus puntos a la agenda.
+        agenda.append((nombre_apartado, puntos))
     
 def speech():
     """
@@ -89,7 +91,8 @@ def speech():
         r(Recognizer): Realiza la tarea de reconocimiento de voz
         audio(AudioData): Almacena el audio capturado por el microfono
 
-    Atributos: tex_cap(list): Lista que contiene el texto entendido
+    Attributes: 
+        tex_cap(list): Lista que contiene el texto entendido
 
     Returns:
         list: Returna la lista 'text_cap' que contiene el texto entendido
