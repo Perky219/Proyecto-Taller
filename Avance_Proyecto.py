@@ -60,7 +60,35 @@ with sr.Microphone() as source:
     try:
         text=r.recognize_assemblyai(audio, language="es-ES")
 """
+import speech_recognition as sr
 
+def speech():
+    
+    r = sr.Recognizer()
+    cont=0
+    l=[]
+    with sr.Microphone() as source:
+        while cont<10:
+            print ("Intervención:\n")
+            print("Di algo...")
+            r.energy_threshold = 700 # valor en decibeles
+            r.adjust_for_ambient_noise(source) #Ajusta el ruido del ambiente para mejorar la calidad del reconocimiento de vos
+            audio = r.listen(source, phrase_time_limit=5)# Permite una 3 segundos de silencio antes de terminar el reconocimiento
+            cont=cont+1
+            try:
+                print("inicia el reconocimiento...\n")
+                text = r.recognize_google(audio, language='es-ES')
+                print("Has dicho: " + text)
+                l.append(text)
+                if text=="salir":
+                    break
+            except sr.UnknownValueError:
+                print("No se pudo reconocer el audio.")
+            except sr.RequestError as e:
+                print("No se pudo obtener respuesta desde el servicio de Google Speech Recognition: {0}".format(e))
+    return (l)
+result = speech()
+print(result)
 
 
 #prueba del commit en git
