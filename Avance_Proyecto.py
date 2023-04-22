@@ -61,34 +61,38 @@ with sr.Microphone() as source:
         text=r.recognize_assemblyai(audio, language="es-ES")
 """
 import speech_recognition as sr
-
+import time
 def speech():
-    
     r = sr.Recognizer()
-    cont=0
+    i=0
     l=[]
     with sr.Microphone() as source:
-        while cont<10:
-            print ("Intervención:\n")
+        while True:
+            print("Intervención:\n")
             print("Di algo...")
-            r.energy_threshold = 700 # valor en decibeles
-            r.adjust_for_ambient_noise(source) #Ajusta el ruido del ambiente para mejorar la calidad del reconocimiento de vos
-            audio = r.listen(source, phrase_time_limit=5)# Permite una 3 segundos de silencio antes de terminar el reconocimiento
-            cont=cont+1
+            r.energy_threshold = 700  # valor en decibeles
+            r.adjust_for_ambient_noise(source)  # Ajusta el ruido del ambiente para mejorar la calidad del reconocimiento de vos
+            audio = r.listen(source)
+            if i>=5:
+                print("Se ha alcanzado el límite de intentos.")
+                break  # Sale del bucle si se alcanza el límite de intentos
             try:
-                print("inicia el reconocimiento...\n")
+                # Convertir audio a texto
                 text = r.recognize_google(audio, language='es-ES')
-                print("Has dicho: " + text)
-                l.append(text)
-                if text=="salir":
-                    break
+                print("Momento de inicio",(time.strftime("%Y-%m-%d %H:%M:%S")),"/ Escrito: " + text)
+                if text.lower() == "finalizar":
+                    break  # Sale del bucle si el usuario dice "Finalizar"
+                l.append(time.strftime("%H:%M:%S"))#Da la hora 
+                l.append(text )
+                i=0 #Reinicia el conteo
             except sr.UnknownValueError:
-                print("No se pudo reconocer el audio.")
+                print("No se pudo entender lo que dijiste.")
+                i+=1
             except sr.RequestError as e:
-                print("No se pudo obtener respuesta desde el servicio de Google Speech Recognition: {0}".format(e))
-    return (l)
+                print("No se pudo conectar al servicio de reconocimiento de voz; {0}".format(e))
+                i+=1
+    return l
 result = speech()
 print(result)
 
 
-#prueba del commit en git
