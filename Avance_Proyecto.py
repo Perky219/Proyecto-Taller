@@ -51,29 +51,35 @@ def participantes():
             break
     
 
-"""
-import speech_recognition as sr
-r=sr.Recognizer()
 
-with sr.Microphone() as source:
-    audio=r.listen(source)
-    try:
-        text=r.recognize_assemblyai(audio, language="es-ES")
-"""
 import speech_recognition as sr
 import time
 def speech():
+    """
+    Se hará un reconocimiento de voz que imprime lo dicho por el usuario
+
+    Args: 
+        i(int): Contador de errores
+        text(str): Almacena el texto escuchado
+        r(Recognizer): Realiza la tarea de reconocimiento de voz
+        audio(AudioData): Almacena el audio capturado por el microfono
+
+    Atributos: tex_cap(list): Lista que contiene el texto entendido
+
+    Returns:
+        list: Returna la lista 'text_cap' que contiene el texto entendido
+    """
     r = sr.Recognizer()
     i=0
-    l=[]
+    text_cap=[]
     with sr.Microphone() as source:
         while True:
             print("Intervención:\n")
-            print("Di algo...")
+            print("Habla ahora...")
             r.energy_threshold = 700  # valor en decibeles
-            r.adjust_for_ambient_noise(source)  # Ajusta el ruido del ambiente para mejorar la calidad del reconocimiento de vos
+            r.adjust_for_ambient_noise(source)  # Ajusta el ruido del ambiente para mejorar la calidad del reconocimiento de voz
             audio = r.listen(source)
-            if i>=5:
+            if i>=3:
                 print("Se ha alcanzado el límite de intentos.")
                 break  # Sale del bucle si se alcanza el límite de intentos
             try:
@@ -82,16 +88,17 @@ def speech():
                 print("Momento de inicio",(time.strftime("%Y-%m-%d %H:%M:%S")),"/ Escrito: " + text)
                 if text.lower() == "finalizar":
                     break  # Sale del bucle si el usuario dice "Finalizar"
-                l.append(time.strftime("%H:%M:%S"))#Da la hora 
-                l.append(text )
-                i=0 #Reinicia el conteo
+                else:
+                    text_cap.append(time.strftime("%H:%M:%S"))#Da la hora 
+                    text_cap    .append(text )
+                    i=0 #Reinicia el conteo
             except sr.UnknownValueError:
                 print("No se pudo entender lo que dijiste.")
                 i+=1
             except sr.RequestError as e:
                 print("No se pudo conectar al servicio de reconocimiento de voz; {0}".format(e))
                 i+=1
-    return l
+    return text_cap
 result = speech()
 print(result)
 
