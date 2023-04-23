@@ -152,3 +152,71 @@ def speech():
             print("No se pudo reconocer el audio.")
         except sr.RequestError as e:
             print(f"No se pudo conectar con el servicio de reconocimiento de voz; {e}")
+
+def ver_agenda():
+    """
+    Función que permite hacer una impresión de la lista de participantes y de la agenda.
+
+    Args:
+        participante (list): Condicional del for dentro de los participantes, que toma valor de lista.
+        apartado (list): Condicional del for dentro de la agenda, que toma valor de lista sobre apartados.
+        puntos (list): Condicional del for dentro de la agenda, que toma valor de lista sobre apartados.
+        punto (list): Condicional del ciclo for anidado, que toma el valor de un punto dentro de cada apartado.
+    """
+    # Se imprime la lista de participantes.
+    print("\nLista de participantes:")
+    for participante in participantes:
+        print(participante["nombre"] + " - " + participante["carnet"])
+    
+    # Se imprime la agenda completa.
+    print("\nAgenda:")
+    for apartado, puntos in agenda:
+        print(apartado)
+        for punto in puntos:
+            print(" - " + punto)
+
+def menu():
+    """
+    Función que genera un menú en terminal, para que el programa sea manejado a preferencia.
+
+    Args:
+        opcion (str): Viariable que se utiliza para realizar comparaciones.
+    """
+    while True:
+        os.system('clear')
+        print("Menú:")
+        print("1. Registrar participantes")
+        print("2. Definir agenda")
+        print("3. Reconocimiento de voz")
+        print("4. Ver agenda")
+        print("5. Salir")
+        opcion=input("Ingrese la opción deseada: ")
+
+        if opcion=="1":
+            os.system('clear')
+            lista_participantes()
+        elif opcion=="2":
+            os.system('clear')
+            registro_agenda()
+        elif opcion=="3":
+            os.system('clear')
+            speech()
+        elif opcion=="4":
+            while True:
+                os.system('clear')
+                ver_agenda()
+                opcion=input("Ingrese 'salir' para regresar al menú principal: ")
+                if opcion=="salir":
+                    break
+                else:
+                    print("Opción no válida.")
+        elif opcion=="5":
+            os.system('clear')
+            print("¡Gracias por utilizar nuestro programa!")
+            time.sleep(3)
+            os.system('clear')
+            break
+        else:
+            print("Opción no válida.")
+
+menu()
