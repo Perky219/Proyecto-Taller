@@ -1,4 +1,8 @@
+import speech_recognition as sr
+import datetime
 import time
+import os
+
 def lista_participantes():
     """
     Se creará una lista de participantes, en la cual cada uno de los integrantes, tendrá un número de carnet.
@@ -22,7 +26,7 @@ def lista_participantes():
         nombre=input("Ingrese el nombre completo del participante o escriba 'fin' para terminar: ")
         if nombre.lower()=="fin":
             break
-        carnet=int(input("Ingrese el número de carnet del participante: "))
+        carnet=input("Ingrese el número de carnet del participante: ")
         # Se valida si el número de carnet ya ha sido registrado previamente
         carnet_existente=False
         for participante in participantes:
@@ -65,10 +69,10 @@ def registro_agenda():
         
         # Se solicitan los puntos del apartado.
         global puntos
-        puntos = []
+        puntos=[]
         while True:
-            nombre_punto = input("Ingrese el nombre del punto o escriba 'fin' para terminar el apartado: ")
-            if nombre_punto.lower() == "fin":
+            nombre_punto=input("Ingrese el nombre del punto o escriba 'fin' para terminar el apartado: ")
+            if nombre_punto.lower()=="fin":
                 break
             
             # Se verifica si el punto ya existe en el apartado actual.
@@ -80,59 +84,71 @@ def registro_agenda():
         
         # Se agrega el apartado y sus puntos a la agenda.
         agenda.append((nombre_apartado, puntos))
-    
+
 def speech():
     """
-    Se hará un reconocimiento de voz que imprime lo dicho por el usuario
+    Se hará un reconocimiento de voz que imprime lo dicho por el usuario, seleccionando qué participante es el que habla y en qué apartado lo hace.
 
     Args: 
-        i(int): Contador de errores
-        text(str): Almacena el texto escuchado
-        r(Recognizer): Realiza la tarea de reconocimiento de voz
-        audio(AudioData): Almacena el audio capturado por el microfono
+        asd
 
     Attributes: 
-        tex_cap(list): Lista que contiene el texto entendido
-
-    Returns:
-        list: Returna la lista 'text_cap' que contiene el texto entendido
+        asd
     """
-    import speech_recognition as sr
+    # Se selecciona apartado y punto de la agenda.
+    print("Seleccione un apartado:")
+    for i, apartado in enumerate(agenda):
+        print(f"{i + 1}. {apartado[0]}")
+    seleccion_apartado=int(input("Ingrese el número del apartado: "))
 
-    r = sr.Recognizer()
-    i=0
+    # Se obtiene el nombre del apartado seleccionado.
+    apartado_seleccionado=agenda[seleccion_apartado - 1][0]
 
-    global text_cap
-    text_cap=[]
+    # Se solicita al usuario la selección del punto de agenda.
+    print(f"Seleccione un punto de agenda para {apartado_seleccionado}:")
+    for i, punto in enumerate(agenda[seleccion_apartado - 1][1]):
+        print(f"{i + 1}. {punto}")
+    seleccion_punto=int(input("Ingrese el número del punto de agenda: "))
 
-    with sr.Microphone() as source:
-        while True:
-            print("Intervención:\n")
-            print("Habla ahora...")
-            r.energy_threshold = 700  # valor en decibeles
-            r.adjust_for_ambient_noise(source)  # Ajusta el ruido del ambiente para mejorar la calidad del reconocimiento de voz
-            audio = r.listen(source)
-            if i>=3:
-                print("Se ha alcanzado el límite de intentos.")
-                break  # Sale del bucle si se alcanza el límite de intentos
-            try:
-                # Convertir audio a texto
-                text = r.recognize_google(audio, language='es-ES')
-                print("Momento de inicio",(time.strftime("%Y-%m-%d %H:%M:%S")),"/ Escrito: " + text)
-                if text.lower() == "finalizar":
-                    break  # Sale del bucle si el usuario dice "Finalizar"
-                else:
-                    text_cap.append(time.strftime("%H:%M:%S"))#Da la hora 
-                    text_cap    .append(text )
-                    i=0 #Reinicia el conteo
-            except sr.UnknownValueError:
-                print("No se pudo entender lo que dijiste.")
-                i+=1
-            except sr.RequestError as e:
-                print("No se pudo conectar al servicio de reconocimiento de voz; {0}".format(e))
-                i+=1
-    return text_cap
-result = speech()
-print(result)
+    # Se obtiene el nombre del punto de agenda seleccionado.
+    punto_seleccionado=agenda[seleccion_apartado - 1][1][seleccion_punto - 1]
 
+    # Se registra la hora de inicio del punto de agenda seleccionado.
+    hora_inicio = datetime.datetime.now()
+    print(f"Se ha iniciado la discusión del punto de agenda '{punto_seleccionado}' a las {hora_inicio}")
 
+    # Se selecciona participante.
+    nombre_participantes=[participante["nombre"] for participante in participantes]
+
+    # Se comienza bucle para seleccionar participantes hasta que se escriba 'fin'.
+    while True:
+        print("Lista de participantes: ")
+        for i, nombre in enumerate(nombre_participantes):
+            print(f"{i+1}. {nombre}")
+        seleccion = input("Seleccione el número del participante que tomará la palabra o escriba 'fin' para terminar: ")
+        if seleccion.lower()=="fin":
+            break
+        elif not seleccion.isdigit() or int(seleccion) < 1 or int(seleccion) > len(nombre_participantes):
+            print("Error: selección no válida")
+            continue
+        
+        # Se obtiene el participante seleccionado.
+        participante_seleccionado = participantes[int(seleccion)-1]
+        print(f"{participante_seleccionado['nombre']} ha sido seleccionado para participar en el punto de la agenda '{punto_seleccionado}'")
+
+        # Se inicia reconocimiento de voz para el participante seleccionado.
+        print(f"Iniciando reconocimiento de voz para el punto '{punto_seleccionado}' y el participante '{participante_seleccionado['nombre']}'...")
+        with sr.Microphone() as source:
+            r=sr.Recognizer()
+            r.adjust_for_ambient_noise(source) # Ajustar nivel de ruido
+            audio=r.listen(source)
+
+        # Se realiza reconocimiento de voz.
+        try:
+            print("Procesando audio...")
+            texto_reconocido=r.recognize_google(audio, language="es-ES")
+            print(f"Texto reconocido: '{texto_reconocido}'")
+        except sr.UnknownValueError:
+            print("No se pudo reconocer el audio.")
+        except sr.RequestError as e:
+            print(f"No se pudo conectar con el servicio de reconocimiento de voz; {e}")
