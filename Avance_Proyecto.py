@@ -199,3 +199,20 @@ def speech():
                 i += 1
     print("Fin del reconocimiento de voz.")
     return text_cap
+
+def primer_reporte():
+    # Se imprime la lista de participantes.
+    print("\nLista de participantes:")
+    for participante in participantes:
+        print(participante["nombre"] + " - " + participante["carnet"])
+
+    # Se imprime la agenda completa.
+    print("\nAgenda:")
+    for apartado, puntos in agenda:
+        print(apartado)
+        for punto in puntos:
+            print(" - " + punto+'\n')
+
+    # Imprimir transcripciones de cada participante
+    for i in text_cap:
+        print(f"{i[0]['nombre']} en el punto '{i[1][1]}' del apartado '{i[1][0]}'a las {i[2]} dijo: '{i[3][0]}'\n")
