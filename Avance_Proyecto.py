@@ -172,6 +172,7 @@ def speech():
     """
     r = sr.Recognizer()
     i = 0
+    global text_cap
     text_cap = []
     participante = seleccionar_participante(participantes)
     apartado = seleccionar_espacio_agenda(agenda)
