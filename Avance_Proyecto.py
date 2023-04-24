@@ -1,7 +1,6 @@
-import speech_recognition as sr
-import datetime
-import time
 import os
+import speech_recognition as sr
+import time
 
 def lista_participantes():
     """
@@ -17,17 +16,18 @@ def lista_participantes():
     Attributes:
         participantes (list): Lista de participantes completa.
     """
-    # Se crea una lista vacía para almacenar los nombres y carnets de los participantes
+    # Se crea una lista vacía para almacenar los nombres y carnets de los participantes.
     global participantes
     participantes=[]
 
-    # Se solicita al usuario que ingrese los nombres y carnets de los participantes
+    # Se solicita al usuario que ingrese los nombres y carnets de los participantes.
     while True:
         nombre=input("Ingrese el nombre completo del participante o escriba 'fin' para terminar: ")
         if nombre.lower()=="fin":
             break
         carnet=input("Ingrese el número de carnet del participante: ")
-        # Se valida si el número de carnet ya ha sido registrado previamente
+        
+        # Se comprueba si el número de carnet ya ha sido registrado previamente.
         carnet_existente=False
         for participante in participantes:
             if participante["carnet"]==carnet:
@@ -35,7 +35,7 @@ def lista_participantes():
                 carnet_existente=True
                 break
 
-        # Se valida que el número de carnet sea un valor numérico.
+        # Se comprueba que el número de carnet sea un valor numérico.
         if not carnet.isdigit():
             print("Error: el número de carnet debe ser un valor numérico")
         elif not carnet_existente:
@@ -58,7 +58,7 @@ def registro_agenda():
     agenda=[]
     while True:
         # Se solicita el nombre del apartado.
-        nombre_apartado=input("Ingrese el nombre del apartado o escriba 'fin' para terminar: ")
+        nombre_apartado=input("Ingrese el nombre del apartado o escriba 'fin' para terminar el registro de la agenda: ")
         if nombre_apartado.lower()=="fin":
             break
         
@@ -85,138 +85,111 @@ def registro_agenda():
         # Se agrega el apartado y sus puntos a la agenda.
         agenda.append((nombre_apartado, puntos))
 
+def seleccionar_participante(participantes):
+    """
+    Permite al usuario seleccionar una persona registrada de la lista de participantes.
+
+    Args:
+        participantes (list): Lista de participantes registrados.
+
+    Returns:
+        dict: Diccionario de la persona seleccionada.
+    """
+    # Mostrar la lista de participantes
+    print("Seleccione una persona registrada:")
+    for i, participante in enumerate(participantes):
+        print(f"{i+1}. {participante['nombre']} ({participante['carnet']})")
+
+    # Pedir al usuario que seleccione un participante
+    while True:
+        try:
+            seleccion = int(input("Ingrese el número de la persona que desea seleccionar: "))
+            if seleccion < 1 or seleccion > len(participantes):
+                print(f"Error: el número debe estar entre 1 y {len(participantes)}")
+            else:
+                return participantes[seleccion-1]
+        except ValueError:
+            print("Error: debe ingresar un número")
+
+def seleccionar_espacio_agenda(agenda):
+    """
+    Permite al usuario seleccionar un punto específico de la agenda.
+
+    Args:
+        agenda (list): Lista de apartados y puntos de la agenda.
+
+    Returns:
+        tuple: Tupla con el apartado y punto seleccionados.
+    """
+    # Mostrar la lista de apartados y puntos
+    print("Seleccione un apartado y punto de la agenda:")
+    for i, (apartado, puntos) in enumerate(agenda):
+        print(f"{i+1}. {apartado}:")
+        for j, punto in enumerate(puntos):
+            print(f"\t{j+1}. {punto}")
+
+    # Pedir al usuario que seleccione un apartado y punto
+    while True:
+        try:
+            seleccion_apartado = int(input("Ingrese el número del apartado que desea seleccionar: "))
+            if seleccion_apartado < 1 or seleccion_apartado > len(agenda):
+                print(f"Error: el número debe estar entre 1 y {len(agenda)}")
+                continue
+
+            seleccion_punto = int(input("Ingrese el número del punto que desea seleccionar: "))
+            if seleccion_punto < 1 or seleccion_punto > len(agenda[seleccion_apartado-1][1]):
+                print(f"Error: el número debe estar entre 1 y {len(agenda[seleccion_apartado-1][1])}")
+                continue
+
+            apartado = agenda[seleccion_apartado-1][0]
+            punto = agenda[seleccion_apartado-1][1][seleccion_punto-1]
+            return (apartado, punto)
+
+        except ValueError:
+            print("Error: debe ingresar un número")
+
 def speech():
     """
-    Se hará un reconocimiento de voz que imprime lo dicho por el usuario, seleccionando qué participante es el que habla y en qué apartado lo hace.
-
-    Args: 
-        asd
-
-    Attributes: 
-        asd
-    """
-    # Se selecciona apartado y punto de la agenda.
-    print("Seleccione un apartado:")
-    for i, apartado in enumerate(agenda):
-        print(f"{i + 1}. {apartado[0]}")
-    seleccion_apartado=int(input("Ingrese el número del apartado: "))
-
-    # Se obtiene el nombre del apartado seleccionado.
-    apartado_seleccionado=agenda[seleccion_apartado - 1][0]
-
-    # Se solicita al usuario la selección del punto de agenda.
-    print(f"Seleccione un punto de agenda para {apartado_seleccionado}:")
-    for i, punto in enumerate(agenda[seleccion_apartado - 1][1]):
-        print(f"{i + 1}. {punto}")
-    seleccion_punto=int(input("Ingrese el número del punto de agenda: "))
-
-    # Se obtiene el nombre del punto de agenda seleccionado.
-    punto_seleccionado=agenda[seleccion_apartado - 1][1][seleccion_punto - 1]
-
-    # Se registra la hora de inicio del punto de agenda seleccionado.
-    hora_inicio = datetime.datetime.now()
-    print(f"Se ha iniciado la discusión del punto de agenda '{punto_seleccionado}' a las {hora_inicio}")
-
-    # Se selecciona participante.
-    nombre_participantes=[participante["nombre"] for participante in participantes]
-
-    # Se comienza bucle para seleccionar participantes hasta que se escriba 'fin'.
-    while True:
-        print("Lista de participantes: ")
-        for i, nombre in enumerate(nombre_participantes):
-            print(f"{i+1}. {nombre}")
-        seleccion = input("Seleccione el número del participante que tomará la palabra o escriba 'fin' para terminar: ")
-        if seleccion.lower()=="fin":
-            break
-        elif not seleccion.isdigit() or int(seleccion) < 1 or int(seleccion) > len(nombre_participantes):
-            print("Error: selección no válida")
-            continue
-        
-        # Se obtiene el participante seleccionado.
-        participante_seleccionado = participantes[int(seleccion)-1]
-        print(f"{participante_seleccionado['nombre']} ha sido seleccionado para participar en el punto de la agenda '{punto_seleccionado}'")
-
-        # Se inicia reconocimiento de voz para el participante seleccionado.
-        print(f"Iniciando reconocimiento de voz para el punto '{punto_seleccionado}' y el participante '{participante_seleccionado['nombre']}'...")
-        with sr.Microphone() as source:
-            r=sr.Recognizer()
-            r.adjust_for_ambient_noise(source) # Ajustar nivel de ruido
-            audio=r.listen(source)
-
-        # Se realiza reconocimiento de voz.
-        try:
-            print("Procesando audio...")
-            texto_reconocido=r.recognize_google(audio, language="es-ES")
-            print(f"Texto reconocido: '{texto_reconocido}'")
-        except sr.UnknownValueError:
-            print("No se pudo reconocer el audio.")
-        except sr.RequestError as e:
-            print(f"No se pudo conectar con el servicio de reconocimiento de voz; {e}")
-
-def ver_agenda():
-    """
-    Función que permite hacer una impresión de la lista de participantes y de la agenda.
+    Reconocedor de voz que imprime lo dicho por el usuario y la hora en que se inició.
 
     Args:
-        participante (list): Condicional del for dentro de los participantes, que toma valor de lista.
-        apartado (list): Condicional del for dentro de la agenda, que toma valor de lista sobre apartados.
-        puntos (list): Condicional del for dentro de la agenda, que toma valor de lista sobre apartados.
-        punto (list): Condicional del ciclo for anidado, que toma el valor de un punto dentro de cada apartado.
-    """
-    # Se imprime la lista de participantes.
-    print("\nLista de participantes:")
-    for participante in participantes:
-        print(participante["nombre"] + " - " + participante["carnet"])
-    
-    # Se imprime la agenda completa.
-    print("\nAgenda:")
-    for apartado, puntos in agenda:
-        print(apartado)
-        for punto in puntos:
-            print(" - " + punto)
+        i (int): Contador de errores.
+        text_cap (list): Almacena el texto capturado.
+        r (Recognizer): Realiza la tarea de reconocimiento de voz.
+        audio (AudioData): Almacena el audio capturado por el micrófono.
 
-def menu():
-    """
-    Función que genera un menú en terminal, para que el programa sea manejado a preferencia.
+    Atributos:
+        text_cap (list): Lista que contiene el texto entendido.
 
-    Args:
-        opcion (str): Viariable que se utiliza para realizar comparaciones.
+    Returns:
+        list: Returna la lista 'text_cap' que contiene el texto entendido.
     """
-    while True:
-        os.system('clear')
-        print("Menú:")
-        print("1. Registrar participantes")
-        print("2. Definir agenda")
-        print("3. Reconocimiento de voz")
-        print("4. Ver agenda")
-        print("5. Salir")
-        opcion=input("Ingrese la opción deseada: ")
-
-        if opcion=="1":
-            os.system('clear')
-            lista_participantes()
-        elif opcion=="2":
-            os.system('clear')
-            registro_agenda()
-        elif opcion=="3":
-            os.system('clear')
-            speech()
-        elif opcion=="4":
-            while True:
-                os.system('clear')
-                ver_agenda()
-                opcion=input("Ingrese 'salir' para regresar al menú principal: ")
-                if opcion=="salir":
+    r = sr.Recognizer()
+    i = 0
+    text_cap = []
+    participante = seleccionar_participante(participantes)
+    apartado = seleccionar_espacio_agenda(agenda)
+    start_time = time.time()
+    print("Habla ahora...")
+    with sr.Microphone() as source:
+        while (time.time() - start_time) < 30: # Límite de 30 segundos para la ejecución de la función
+            r.energy_threshold = 700
+            r.adjust_for_ambient_noise(source)
+            audio = r.listen(source)
+            try:
+                text = r.recognize_google(audio, language='es-ES')
+                print("Hablaste a las", time.strftime("%Y-%m-%d %H:%M:%S"), "y dijiste:", text)
+                if text.lower() == "finalizar":
                     break
                 else:
-                    print("Opción no válida.")
-        elif opcion=="5":
-            os.system('clear')
-            print("¡Gracias por utilizar nuestro programa!")
-            time.sleep(3)
-            os.system('clear')
-            break
-        else:
-            print("Opción no válida.")
-
-menu()
+                    ultima_participacion = [participante, apartado, time.strftime("%H:%M:%S"), [text]]
+                    text_cap.append(ultima_participacion)
+                    i = 0
+            except sr.UnknownValueError:
+                print("No se pudo entender lo que dijiste.")
+                i += 1
+            except sr.RequestError as e:
+                print("No se pudo conectar al servicio de reconocimiento de voz; {0}".format(e))
+                i += 1
+    print("Fin del reconocimiento de voz.")
+    return text_cap
