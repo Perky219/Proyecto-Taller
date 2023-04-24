@@ -91,9 +91,10 @@ def seleccionar_participante(participantes):
 
     Args:
         participantes (list): Lista de participantes registrados.
+        seleccion (int): Contiene el indice de la persona seleccionada
+        i (int): Da la numeracion a cada participante de la lista
 
-    Returns:
-        dict: Diccionario de la persona seleccionada.
+
     """
     # Mostrar la lista de participantes
     print("Seleccione una persona registrada:")
@@ -117,6 +118,11 @@ def seleccionar_espacio_agenda(agenda):
 
     Args:
         agenda (list): Lista de apartados y puntos de la agenda.
+        i (int): Da una enumeracion a cada apartado y punto
+        seleccion_apartado (int): Contiene el indice del apartado a seleccionar
+        agenda (list): Es una lista de tuplas, donde cada tupla contiene un apartado y una lista de puntos correspondientes a ese apartado.
+        apartado (list): Almacena el nombre del apartado seleccionado por el usuario a partir de la lista agenda
+        punto (list):Almacena el punto específico seleccionado por el usuario a partir de la lista agenda.
 
     Returns:
         tuple: Tupla con el apartado y punto seleccionados.
