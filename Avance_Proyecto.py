@@ -226,7 +226,7 @@ def primer_reporte():
 
     # Imprimir transcripciones de cada participante
     for i in text_cap:
-        print(f"{i[0]['nombre']} en el punto '{i[1][1]}' del apartado '{i[1][0]}'a las {i[2]} dijo: '{i[3][0]}'\n")
+        print(f"{i[0]['nombre']} en el punto '{i[1][1]}' del apartado '{i[1][0]}' a las {i[2]} dijo: '{i[3][0]}'\n")
 
 def segundo_reporte():
     """
@@ -334,15 +334,12 @@ def menu_reportes():
         if opcion == "1":
             os.system('clear')
             primer_reporte()
-            os.system('clear')
         elif opcion == "2":
             os.system('clear')
             segundo_reporte()
-            os.system('clear')
         elif opcion == "3":
             os.system('clear')
             tercer_reporte()
-            os.system('clear')
         elif opcion == "4":
             os.system('clear')
             print("¡Hasta luego!")
