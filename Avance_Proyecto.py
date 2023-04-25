@@ -217,3 +217,24 @@ def primer_reporte():
     # Imprimir transcripciones de cada participante
     for i in text_cap:
         print(f"{i[0]['nombre']} en el punto '{i[1][1]}' del apartado '{i[1][0]}'a las {i[2]} dijo: '{i[3][0]}'\n")
+
+def segundo_reporte():
+    # Diccionario para almacenar la cantidad de palabras reconocidas de cada participante.
+    palabras_por_participante = {}
+
+    # Recorremos las transcripciones y contamos las palabras de cada participante.
+    for transcripcion in text_cap:
+        participante = transcripcion[0]["nombre"]
+        palabras = len(transcripcion[3][0].split())
+        if participante in palabras_por_participante:
+            palabras_por_participante[participante] += palabras
+        else:
+            palabras_por_participante[participante] = palabras
+
+    # Ordenamos el diccionario en base a la cantidad de palabras reconocidas.
+    ordenado = sorted(palabras_por_participante.items(), key=lambda x: x[1], reverse=True)
+
+    # Imprimimos el resultado.
+    print("\nCantidad de palabras reconocidas por participante:")
+    for participante, cantidad_palabras in ordenado:
+        print(f"{participante}: {cantidad_palabras} palabras")
