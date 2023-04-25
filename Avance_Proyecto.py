@@ -8,14 +8,14 @@ def lista_participantes():
     Se creará una lista de participantes, en la cual cada uno de los integrantes, tendrá un número de carnet.
 
     Args:
-        nombre (str): Nombre que se le asignará a cada integrante.
-        carnet (int): Carnet que se le asignará a cada integrante.
+        participantes (list): Lista de participantes completa.
         carnet_existente (bool): Variable que se genera para realizar comparación de existencia, definida default como 'False'.
         participante (dict): Toma el valor de cada diccionario dentro del ciclo 'for'.
         participantes_str (str): Lista de participantes en string (solo para impresión).
 
     Attributes:
-        participantes (list): Lista de participantes completa.
+        nombre (str): Nombre que se le asignará a cada integrante.
+        carnet (int): Carnet que se le asignará a cada integrante.
     """
     # Se crea una lista vacía para almacenar los nombres y carnets de los participantes.
     global participantes
@@ -47,13 +47,13 @@ def registro_agenda():
     Se creará un registro de agenda, que estará dividida en apartados, donde cada uno de estos tendrá puntos.
 
     Args:
-        nombre_apartado (str): Apartado que se va agregar a la agenda.
-        nombre_punto (str): Punto que se va a agregar a la agenda.
+        agenda (list): Apartados dentro de la agenda.
+        puntos (list): Puntos dentro de la agenda.
         respuesta (str): Respuesta de la persona a la pregunta '¿Agregar otro punto/apartado?'.
 
     Attributes:
-        agenda (list): Apartados dentro de la agenda.
-        puntos (list): Puntos dentro de la agenda.
+        nombre_apartado (str): Apartado que se va agregar a la agenda.
+        nombre_punto (str): Punto que se va a agregar a la agenda.
     """
     global agenda
     agenda=[]
@@ -92,10 +92,10 @@ def seleccionar_participante(participantes):
 
     Args:
         participantes (list): Lista de participantes registrados.
-        seleccion (int): Contiene el indice de la persona seleccionada
         i (int): Da la numeracion a cada participante de la lista
 
-
+    Attributes:
+        seleccion (int): Contiene el indice de la persona seleccionada
     """
     # Mostrar la lista de participantes
     print("Seleccione una persona registrada:")
@@ -119,11 +119,14 @@ def seleccionar_espacio_agenda(agenda):
 
     Args:
         agenda (list): Lista de apartados y puntos de la agenda.
-        i (int): Da una enumeracion a cada apartado y punto
-        seleccion_apartado (int): Contiene el indice del apartado a seleccionar
+        i (int): Da una enumeracion a cada apartado y punto.
         agenda (list): Es una lista de tuplas, donde cada tupla contiene un apartado y una lista de puntos correspondientes a ese apartado.
-        apartado (list): Almacena el nombre del apartado seleccionado por el usuario a partir de la lista agenda
-        punto (list):Almacena el punto específico seleccionado por el usuario a partir de la lista agenda.
+        apartado (list): Almacena el nombre del apartado seleccionado por el usuario a partir de la lista agenda.
+        punto (list): Almacena el punto específico seleccionado por el usuario a partir de la lista agenda.
+
+    Attributes:
+        seleccion_apartado (int): Contiene el indice del apartado a seleccionar.
+        seleccion_punto (int): Contiene el indice del punto a seleccionar.
 
     Returns:
         tuple: Tupla con el apartado y punto seleccionados.
@@ -160,16 +163,14 @@ def speech():
     Reconocedor de voz que imprime lo dicho por el usuario y la hora en que se inició.
 
     Args:
+        text_cap (list): Lista que contiene el texto entendido.
         i (int): Contador de errores.
         text_cap (list): Almacena el texto capturado.
         r (Recognizer): Realiza la tarea de reconocimiento de voz.
         audio (AudioData): Almacena el audio capturado por el micrófono.
-
-    Atributos:
-        text_cap (list): Lista que contiene el texto entendido.
-
+        
     Returns:
-        list: Returna la lista 'text_cap' que contiene el texto entendido.
+        list: Retorna la lista 'text_cap' que contiene el texto entendido.
     """
     r = sr.Recognizer()
     i = 0
@@ -202,6 +203,8 @@ def speech():
     return text_cap
 
 def primer_reporte():
+    """_summary_
+    """
     # Se imprime la lista de participantes.
     print("\nLista de participantes:")
     for participante in participantes:
@@ -219,6 +222,8 @@ def primer_reporte():
         print(f"{i[0]['nombre']} en el punto '{i[1][1]}' del apartado '{i[1][0]}'a las {i[2]} dijo: '{i[3][0]}'\n")
 
 def segundo_reporte():
+    """_summary_
+    """
     # Diccionario para almacenar la cantidad de palabras reconocidas de cada participante.
     palabras_por_participante = {}
 
@@ -240,6 +245,8 @@ def segundo_reporte():
         print(f"{participante}: {cantidad_palabras} palabras")
 
 def tercer_reporte():
+    """_summary_
+    """
     # Diccionario para la cantidad de participaciones por persona y por punto.
     participaciones_por_punto = {}
 
@@ -275,12 +282,12 @@ def tercer_reporte():
     for nombre, participaciones in participaciones_por_punto.items():
         print(f"\n{nombre}:")
         for punto, cantidad in participaciones.items():
-            print(f"  - {punto}: {cantidad}")
+            print(f"  - En el apartado {punto[0]}, punto {punto[1]}: {cantidad}")
 
     # Imprimir el listado de personas que participaron por punto.
     print("\nListado de personas que participaron por punto:")
     for punto, personas in personas_por_punto.items():
-        print(f"\n{punto}:")
+        print(f"\nApartado {punto[0]}, punto {punto[1]}:")
         for persona in personas:
             print(f"  - {persona[0]}: {persona[1]} veces")
 
@@ -302,13 +309,17 @@ def menu_reportes():
         if opcion == "1":
             os.system('clear')
             primer_reporte()
+            os.system('clear')
         elif opcion == "2":
             os.system('clear')
             segundo_reporte()
+            os.system('clear')
         elif opcion == "3":
             os.system('clear')
             tercer_reporte()
+            os.system('clear')
         elif opcion == "4":
+            os.system('clear')
             print("¡Hasta luego!")
             time.sleep(3)
             os.system('clear')
@@ -317,6 +328,12 @@ def menu_reportes():
             print("Opción inválida, por favor intente de nuevo.")
 
 def menu_principal():
+    """
+    Función que genera un menú en terminal, en dónde el usuario puede seleccionar distintas opciones para ejecutar lo que prefiera.
+
+    Attributes:
+        opcion (str): Opción seleccionada por el usuario.
+    """
     while True:
         os.system('clear')
         print("Menú:")
@@ -340,6 +357,7 @@ def menu_principal():
             os.system('clear')
             menu_reportes()
         elif opcion=="5":
+            os.system('clear')
             print("¡Gracias por utilizar nuestro programa!")
             time.sleep(3)
             os.system('clear')
