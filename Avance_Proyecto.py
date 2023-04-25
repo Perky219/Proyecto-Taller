@@ -238,3 +238,48 @@ def segundo_reporte():
     print("\nCantidad de palabras reconocidas por participante:")
     for participante, cantidad_palabras in ordenado:
         print(f"{participante}: {cantidad_palabras} palabras")
+
+def tercer_reporte():
+    # Diccionario para la cantidad de participaciones por persona y por punto.
+    participaciones_por_punto = {}
+
+    # Diccionario para el listado de personas que participaron por punto.
+    personas_por_punto = {}
+
+    # Recorrer las transcripciones.
+    for transcripcion in text_cap:
+        nombre = transcripcion[0]["nombre"]
+        punto = transcripcion[1]
+        
+        # Actualizar la cantidad de participaciones por persona y por punto.
+        if nombre not in participaciones_por_punto:
+            participaciones_por_punto[nombre] = {}
+        if punto not in participaciones_por_punto[nombre]:
+            participaciones_por_punto[nombre][punto] = 0
+        participaciones_por_punto[nombre][punto] += 1
+        
+        # Actualizar el listado de personas que participaron por punto.
+        if punto not in personas_por_punto:
+            personas_por_punto[punto] = []
+        participo = False
+        for i, tupla in enumerate(personas_por_punto[punto]):
+            if tupla[0] == nombre:
+                personas_por_punto[punto][i] = (nombre, tupla[1] + 1)
+                participo = True
+                break
+        if not participo:
+            personas_por_punto[punto].append((nombre, 1))
+
+    # Imprimir la cantidad total de participaciones por persona y por punto.
+    print("\nCantidad total de participaciones por persona y por punto:")
+    for nombre, participaciones in participaciones_por_punto.items():
+        print(f"\n{nombre}:")
+        for punto, cantidad in participaciones.items():
+            print(f"  - {punto}: {cantidad}")
+
+    # Imprimir el listado de personas que participaron por punto.
+    print("\nListado de personas que participaron por punto:")
+    for punto, personas in personas_por_punto.items():
+        print(f"\n{punto}:")
+        for persona in personas:
+            print(f"  - {persona[0]}: {persona[1]} veces")
