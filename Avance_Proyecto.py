@@ -283,3 +283,61 @@ def tercer_reporte():
         print(f"\n{punto}:")
         for persona in personas:
             print(f"  - {persona[0]}: {persona[1]} veces")
+
+def menu_reportes():
+    """
+    Función que muestra un menú para seleccionar uno de los tres reportes disponibles y lo genera.
+
+    Attributes:
+        opcion (str): Opción seleccionada por el usuario.
+    """
+    while True:
+        print("\n--- MENÚ DE REPORTES ---")
+        print("1. Reporte de participaciones por apartado de la agenda")
+        print("2. Reporte de cantidad total de palabras reconocidas por persona")
+        print("3. Reporte de cantidad total de participaciones por persona y por punto de la agenda")
+        print("4. Salir")
+        opcion = input("Seleccione el número del reporte que desea generar: ")
+        
+        if opcion == "1":
+            primer_reporte()
+        elif opcion == "2":
+            segundo_reporte()
+        elif opcion == "3":
+            tercer_reporte()
+        elif opcion == "4":
+            print("¡Hasta luego!")
+            break
+        else:
+            print("Opción inválida, por favor intente de nuevo.")
+
+def menu_principal():
+    while True:
+        os.system('clear')
+        print("Menú:")
+        print("1. Registrar participantes")
+        print("2. Definir agenda")
+        print("3. Reconocimiento de voz")
+        print("4. Generar reportes")
+        print("5. Salir")
+        opcion = input("Ingrese la opción deseada: ")
+
+        if opcion == "1":
+            os.system('clear')
+            lista_participantes()
+        elif opcion == "2":
+            os.system('clear')
+            registro_agenda()
+        elif opcion == "3":
+            os.system('clear')
+            speech()
+        elif opcion == "4":
+            os.system('clear')
+            menu_reportes()
+        elif opcion=="5":
+            print("¡Gracias por utilizar nuestro programa!")
+            time.sleep(3)
+            os.system('clear')
+            break
+        else:
+            print("Opción no válida.")
