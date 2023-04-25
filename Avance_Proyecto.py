@@ -341,3 +341,5 @@ def menu_principal():
             break
         else:
             print("Opción no válida.")
+
+menu_principal()
