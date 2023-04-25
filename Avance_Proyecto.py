@@ -203,7 +203,14 @@ def speech():
     return text_cap
 
 def primer_reporte():
-    """_summary_
+    """
+    Esta función imprime la lista de participantes, la agenda completa y las transcripciones de cada participante.
+
+    Args:
+        participante (str): Condicional de un ciclo for que toma las credenciales de cada participante para imprimir.
+        puntos (tuple): Condicional de un ciclo for que toma el valor de cada sección de la agenda.
+        punto (str): Condicional de ciclo for anidado que toma el valor de un punto específico de cada sección de la agenda.
+        i (list): Toma cada sublista como condicional de un ciclo for, para poder hacer una impresión.
     """
     # Se imprime la lista de participantes.
     print("\nLista de participantes:")
@@ -222,7 +229,16 @@ def primer_reporte():
         print(f"{i[0]['nombre']} en el punto '{i[1][1]}' del apartado '{i[1][0]}'a las {i[2]} dijo: '{i[3][0]}'\n")
 
 def segundo_reporte():
-    """_summary_
+    """
+    Esta función cuenta la cantidad de palabras reconocidas por participante y las imprime en orden descendente.
+
+    Args:
+        palabras_por_participante (dict): Diccionario que contendrá las palabras que dice cada participante.
+        transcripcion (list): Toma el valor de las sublistas dentro de "text_cap".
+        participante (str): Toma el nombre de cada participante contenido en "text_cap".
+        palabras (int): Valor numérico del total de palabras.
+        ordenado (dict): Contiene las personas ordenadas por cantidad de palabras.
+        cantidad_palabras (int): Condicional del ciclo for que toma el valor de la cantidad de palabras de cada participante dentro de "ordenado".
     """
     # Diccionario para almacenar la cantidad de palabras reconocidas de cada participante.
     palabras_por_participante = {}
@@ -245,7 +261,16 @@ def segundo_reporte():
         print(f"{participante}: {cantidad_palabras} palabras")
 
 def tercer_reporte():
-    """_summary_
+    """
+    Esta función cuenta la cantidad total de participaciones por persona y por punto, y también imprime el listado de personas que participaron por punto.
+
+    Args:
+        participaciones_por_punto (dict): Diccionario que registra las participaciones por punto de cada persona.
+        personas_por_punto (dict): Diccionario que registra las personas que participaron por punto.
+        transcripcion (list): Recorre la lista "text_cap" y toma el valor de las listas dentro de esta.
+        nombre (str): Valor de nombre que se toma dentro de las sublistas en "text_cap".
+        punto (str): Valor de punto que se toma dentro de las sublistas en "text_cap".
+        participo (bool): Condicional que toma valor inicial en False para realizar comparaciones.
     """
     # Diccionario para la cantidad de participaciones por persona y por punto.
     participaciones_por_punto = {}
