@@ -1,6 +1,7 @@
 import os
 import speech_recognition as sr
 import time
+text_cap = []
 
 def lista_participantes():
     """
@@ -173,7 +174,6 @@ def speech():
     r = sr.Recognizer()
     i = 0
     global text_cap
-    text_cap = []
     participante = seleccionar_participante(participantes)
     apartado = seleccionar_espacio_agenda(agenda)
     start_time = time.time()
@@ -300,13 +300,18 @@ def menu_reportes():
         opcion = input("Seleccione el número del reporte que desea generar: ")
         
         if opcion == "1":
+            os.system('clear')
             primer_reporte()
         elif opcion == "2":
+            os.system('clear')
             segundo_reporte()
         elif opcion == "3":
+            os.system('clear')
             tercer_reporte()
         elif opcion == "4":
             print("¡Hasta luego!")
+            time.sleep(3)
+            os.system('clear')
             break
         else:
             print("Opción inválida, por favor intente de nuevo.")
