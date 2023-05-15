@@ -2,28 +2,18 @@ import os
 import speech_recognition as sr
 import time
 import tkinter as tk
-participantes = {}
-agenda = {}
+participantes = set()
+agenda = set()
 text_cap = {}
 
 def lista_participantes():
     """
-    Se creará un diccionario de participantes, en el cual cada uno de los integrantes, tendrá un número de carnet.
-
-    Args:
-        participantes (dict): Diccionario de participantes completo.
-        carnet_existente (bool): Variable que se genera para realizar comparación de existencia, definida default como 'False'.
-        participante (dict): Toma el valor de cada diccionario dentro del ciclo 'for'.
-        participantes_str (str): Lista de participantes en string (solo para impresión).
-
-    Attributes:
-        nombre (str): Nombre que se le asignará a cada integrante.
-        carnet (int): Carnet que se le asignará a cada integrante.
+    Se creará un conjunto de participantes, en el cual cada uno de los integrantes, tendrá un número de carnet.
 
     Returns:
-        dict: Diccionario de participantes completo.
+        set: Conjunto de participantes completo.
     """
-    # Se crea un diccionario vacío para almacenar los nombres y carnets de los participantes.
+    # Se crea un conjunto vacío para almacenar los nombres y carnets de los participantes.
     global participantes
 
     # Se solicita al usuario que ingrese los nombres y carnets de los participantes.
@@ -32,20 +22,12 @@ def lista_participantes():
         if nombre.lower() == "fin":
             break
         carnet = input("Ingrese el número de carnet del participante: ")
-        
-        # Se comprueba si el número de carnet ya ha sido registrado previamente.
-        carnet_existente = False
-        for participante in participantes.values():
-            if participante["carnet"] == carnet:
-                print("Error: el número de carnet ya ha sido registrado para", participante["nombre"])
-                carnet_existente = True
-                break
 
-        # Se comprueba que el número de carnet sea un valor numérico.
-        if not carnet.isdigit():
-            print("Error: el número de carnet debe ser un valor numérico")
-        elif not carnet_existente:
-            participantes[carnet] = {"nombre": nombre, "carnet": carnet}
+        # Se comprueba si el número de carnet ya ha sido registrado previamente.
+        if any(participante.startswith(carnet) for participante in participantes):
+            print("Error: el número de carnet ya ha sido registrado")
+        else:
+            participantes.add(f"{carnet} - {nombre}")
     
     return participantes
 
@@ -54,8 +36,8 @@ def registro_agenda():
     Se creará un registro de agenda, que estará dividida en apartados, donde cada uno de estos tendrá puntos.
 
     Args:
-        agenda (dict): Diccionario de apartados y sus puntos.
-        puntos (dict): Diccionario de puntos de cada apartado.
+        agenda (set): Conjunto de apartados y sus puntos.
+        puntos (list): Lista de puntos de un apartado.
         respuesta (str): Respuesta de la persona a la pregunta '¿Agregar otro punto/apartado?'.
 
     Attributes:
@@ -63,10 +45,10 @@ def registro_agenda():
         nombre_punto (str): Punto que se va a agregar a la agenda.
 
     Returns:
-        dict: Diccionario de apartados y sus puntos.
+        set: Conjunto de apartados y sus puntos.
     """
 
-    # Se inicializa la variable agenda como un diccionario vacío.
+    # Se inicializa la variable agenda como un conjunto vacío.
     global agenda
 
     # Se solicita el nombre del primer apartado.
@@ -76,99 +58,118 @@ def registro_agenda():
             break
 
         # Se verifica si el apartado ya existe en la agenda.
-        if nombre_apartado in agenda:
-            print(f"El apartado '{nombre_apartado}' ya existe en la agenda.")
-            continue
-
-        # Se inicializa la variable puntos como un diccionario vacío.
-        puntos = {}
-
-        # Se solicitan los puntos del apartado.
-        while True:
-            nombre_punto = input("Ingrese el nombre del punto o escriba 'fin' para terminar el apartado: ")
-            if nombre_punto.lower() == "fin":
+        for apartado in agenda:
+            if apartado[0] == nombre_apartado:
+                print(f"El apartado '{nombre_apartado}' ya existe en la agenda.")
                 break
+        else:
+            # Se inicializa la variable puntos como una lista vacía.
+            puntos = []
 
-            # Se verifica si el punto ya existe en el apartado actual.
-            if nombre_punto in puntos:
-                print(f"El punto '{nombre_punto}' ya está en el apartado actual.")
-                continue
+            # Se solicitan los puntos del apartado.
+            while True:
+                nombre_punto = input("Ingrese el nombre del punto o escriba 'fin' para terminar el apartado: ")
+                if nombre_punto.lower() == "fin":
+                    break
 
-            # Se agrega el punto al diccionario de puntos del apartado actual.
-            puntos[nombre_punto] = {}
+                # Se verifica si el punto ya existe en el apartado actual.
+                if nombre_punto in puntos:
+                    print(f"El punto '{nombre_punto}' ya está en el apartado actual.")
+                else:
+                    # Se agrega el punto a la lista de puntos del apartado actual.
+                    puntos.append(nombre_punto)
 
-        # Se agrega el apartado y sus puntos al diccionario de la agenda.
-        agenda[nombre_apartado] = puntos
+            # Se convierte la lista de puntos en una tupla y se agrega el apartado y sus puntos al conjunto de la agenda.
+            agenda.add((nombre_apartado, tuple(puntos)))
 
     return agenda
 
 def seleccionar_participante(participantes):
     """
-    Permite al usuario seleccionar una persona registrada del diccionario de participantes.
+    Permite seleccionar un participante del conjunto de participantes a través de un índice numérico.
 
     Args:
-        participantes (dict): Diccionario de participantes registrados.
+        participantes (set): Conjunto de participantes.
 
     Returns:
-        dict: Diccionario con la información de la persona seleccionada.
+        str: Nombre completo y número de carnet del participante seleccionado.
     """
-    # Mostrar la lista de participantes
-    print("Seleccione una persona registrada:")
-    for i, participante in enumerate(participantes.values()):
-        print(f"{i+1}. {participante['nombre']} ({participante['carnet']})")
+    # Convertir el conjunto de participantes a una lista para poder indexar.
+    lista_participantes = list(participantes)
 
-    # Pedir al usuario que seleccione un participante
+    # Imprimir la lista de participantes con índices numéricos.
+    print("Seleccione un participante por su índice:")
+    for i, participante in enumerate(lista_participantes):
+        print(f"{i+1}. {participante}")
+
+    # Solicitar al usuario que ingrese el número correspondiente al participante deseado.
     while True:
         try:
-            seleccion = int(input("Ingrese el número de la persona que desea seleccionar: "))
-            if seleccion < 1 or seleccion > len(participantes):
-                print(f"Error: el número debe estar entre 1 y {len(participantes)}")
+            num_participante = int(input("Número del participante: "))
+            if num_participante < 1 or num_participante > len(participantes):
+                print("Error: seleccione un número válido")
             else:
-                seleccionado = list(participantes.values())[seleccion-1]
-                # Reemplazar listas por su primer elemento
-                for clave in seleccionado:
-                    if type(seleccionado[clave]) == list:
-                        seleccionado[clave] = seleccionado[clave][0]
-                return seleccionado
+                break
         except ValueError:
-            print("Error: debe ingresar un número")
+            print("Error: seleccione un número válido")
+
+    # Retornar el participante seleccionado.
+    return lista_participantes[num_participante-1]
 
 def seleccionar_espacio_agenda(agenda):
     """
-    Permite al usuario seleccionar un punto específico de la agenda.
+    Permite seleccionar un apartado y un punto específico dentro de la agenda.
 
     Args:
-        agenda (dict): Diccionario de apartados y sus puntos.
+        agenda (set): Conjunto de apartados y sus puntos.
 
     Returns:
-        dict: Diccionario con el apartado y punto seleccionados.
+        tuple: Tupla con el nombre del apartado y el nombre del punto seleccionado.
     """
-    # Mostrar la lista de apartados y puntos
-    print("Seleccione un apartado y punto de la agenda:")
-    for i, apartado in enumerate(agenda.keys()):
-        print(f"{i+1}. {apartado}:")
-        for j, punto in enumerate(agenda[apartado].keys()):
-            print(f"\t{j+1}. {punto}")
+    # Se convierte el conjunto de la agenda en una lista para poder indexar los elementos.
+    agenda_list = list(agenda)
+    
+    # Se verifica si la agenda está vacía.
+    if not agenda_list:
+        print("No hay apartados registrados en la agenda.")
+        return None
 
-    # Pedir al usuario que seleccione un apartado y punto
+    # Se muestra una lista de los nombres de los apartados registrados.
+    print("Apartados disponibles:")
+    for i, apartado in enumerate(agenda_list):
+        print(f"{i+1}. {apartado[0]}")
+
+    # Se solicita el número correspondiente al apartado deseado.
     while True:
+        seleccion = input("Seleccione un apartado (ingrese el número correspondiente): ")
         try:
-            seleccion_apartado = int(input("Ingrese el número del apartado que desea seleccionar: "))
-            if seleccion_apartado < 1 or seleccion_apartado > len(agenda):
-                print(f"Error: el número debe estar entre 1 y {len(agenda)}")
-                continue
-
-            seleccion_punto = int(input("Ingrese el número del punto que desea seleccionar: "))
-            if seleccion_punto < 1 or seleccion_punto > len(agenda[list(agenda.keys())[seleccion_apartado-1]]):
-                print(f"Error: el número debe estar entre 1 y {len(agenda[list(agenda.keys())[seleccion_apartado-1]])}")
-                continue
-
-            apartado = {'nombre': agenda[seleccion_apartado-1], 'puntos': agenda[agenda[seleccion_apartado-1]]}
-            punto = {'nombre': agenda[agenda[seleccion_apartado-1]][seleccion_punto-1], 'detalles': agenda[agenda[seleccion_apartado-1]][agenda[agenda[seleccion_apartado-1]][seleccion_punto-1]]}
-            return {'apartado': apartado, 'punto': punto}
-
+            seleccion = int(seleccion)
+            if seleccion < 1 or seleccion > len(agenda_list):
+                raise ValueError
+            break
         except ValueError:
-            print("Error: debe ingresar un número")
+            print("Error: selección inválida.")
+
+    # Se obtiene el apartado correspondiente a la selección y se muestra una lista de los puntos del apartado.
+    apartado = agenda_list[seleccion-1]
+    print(f"Puntos del apartado '{apartado[0]}':")
+    for i, punto in enumerate(apartado[1]):
+        print(f"{i+1}. {punto}")
+
+    # Se solicita el número correspondiente al punto deseado.
+    while True:
+        seleccion = input("Seleccione un punto (ingrese el número correspondiente): ")
+        try:
+            seleccion = int(seleccion)
+            if seleccion < 1 or seleccion > len(apartado[1]):
+                raise ValueError
+            break
+        except ValueError:
+            print("Error: selección inválida.")
+
+    # Se obtiene el punto correspondiente a la selección y se devuelve la tupla con el nombre del apartado y del punto.
+    punto = apartado[1][seleccion-1]
+    return apartado[0], punto
 
 def speech(participantes, agenda):
     """
@@ -328,6 +329,21 @@ def tercer_reporte():
         for persona in personas:
             print(f"  - {persona[0]}: {persona[1]} veces")
 
+# # Crear la ventana
+# ventana = tk.Tk()
+# ventana.title("Mi Ventana")
+
+# # Crear el botón para definir la agenda
+# btn_agenda = tk.Button(ventana, text="Definir agenda", command=registro_agenda)
+# btn_agenda.pack(padx=10, pady=10)
+
+# # Crear el botón para ingresar la lista de participantes
+# btn_participantes = tk.Button(ventana, text="Lista de participantes", command=lista_participantes)
+# btn_participantes.pack(padx=10, pady=10)
+
+# # Mostrar la ventana
+# ventana.mainloop()
+#---------------------------------------------------------------------------------------------------#
 def menu_reportes():
     """
     Función que muestra un menú para seleccionar uno de los tres reportes disponibles y lo genera.
