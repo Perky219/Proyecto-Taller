@@ -1,7 +1,6 @@
-import os
+#import os
 import speech_recognition as sr
 import time
-import tkinter as tk
 participantes = set()
 agenda = set()
 text_cap = {}
