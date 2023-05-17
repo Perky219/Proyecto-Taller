@@ -1,11 +1,15 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-from Logic import eliminar_segmento_usado, convertir_audio_a_texto, corregir_ruta_archivo, seleccionar_carpeta_segmentos, modificar_participante, seleccionar_archivo, seleccionar_carpeta_destino, dividir_audio, participantes, agenda    
+from tkinter import ttk, messagebox, filedialog
+import speech_recognition as sr
+from Logic import seleccionar_archivo, seleccionar_carpeta_destino, dividir_audio, participantes, agenda
 
 class VentanaPrincipal:
     def __init__(self, master):
         self.master = master
-        master.title("App")
+        self.agenda = set()  # Conjunto de apartados con sus puntos asignados
+        self.participantes = set()  # Conjunto de participantes
+
+        master.title("Interfaz de usuario")
 
         # creación de pestañas
         self.notebook = tk.ttk.Notebook(master)
@@ -26,7 +30,7 @@ class VentanaPrincipal:
         self.ventana_registro.pack(fill=tk.BOTH, expand=True)
 
         # agregando VentanaListaParticipantes a la pestaña "Lista de participantes"
-        self.ventana_lista = VentanaListaParticipantes(self.tab_lista)
+        self.ventana_lista = VentanaListaParticipantes(self.tab_lista, self.participantes)
         self.ventana_lista.pack(fill=tk.BOTH, expand=True)
 
         # agregando VentanaDivisorAudio a la pestaña "Divisor de Audio"
@@ -34,7 +38,21 @@ class VentanaPrincipal:
         self.ventana_divisor.pack(fill=tk.BOTH, expand=True)
 
         # agregando VentanaTranscripcion a la pestaña "Transcripción"
-        self.ventana_transcripcion = VentanaTranscripcion(self.tab_transcripcion)
+        self.ventana_transcripcion = VentanaTranscripcion(self.tab_transcripcion, self.ventana_registro.apartados, self.ventana_lista.lista_participantes)
+        self.ventana_transcripcion.pack(fill=tk.BOTH, expand=True)
+
+    def actualizar_agenda(self):
+        self.ventana_transcripcion.actualizar_agenda(self.agenda)
+
+    def actualizar_participantes(self):
+        self.ventana_transcripcion.actualizar_participantes(self.participantes)
+
+    def agregar_participante(self):
+        participante = self.ventana_lista.entry_participante.get()
+        self.participantes.add(participante)
+        self.ventana_lista.actualizar_participantes()  # Llamada al método para actualizar la lista en la pestaña de transcripción
+        self.ventana_lista.actualizar_tabla_participantes()  # Llamada al método para actualizar la tabla de participantes
+        self.ventana_lista.entry_participante.delete(0, tk.END)
 
 class VentanaDivisorAudio(tk.Frame):
     """
@@ -76,203 +94,113 @@ class VentanaDivisorAudio(tk.Frame):
         boton_dividir_audio.grid(row=6, column=0, padx=10, pady=10)
         boton_dividir_audio.config(width=20, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
 
-class VentanaTranscripcion(tk.Frame):
-    """
-    Clase que crea un frame de transcripción.
-    """
-    def __init__(self, ventana=None):
-        """
-        Constructor de mi clase transcripción.
-        """
-        super().__init__(ventana, width=700, height=500)
-        self.ventana = ventana
+class VentanaTranscripcion(ttk.Frame):
+    def __init__(self, master, ventana_agenda, ventana_participantes):
+        super().__init__(master)
+        
+        self.agenda = set()
+        self.participantes = set()
 
-        # Etiqueta y botón para seleccionar el archivo de audio.
-        self.boton_seleccionar_archivo = tk.Button(self, text="Seleccionar archivo",
-                                                   command=self.mostar_tabla_segmentos)
-        self.boton_seleccionar_archivo.grid(row=0, column=0, padx=5, pady=10,columnspan=2)
-        self.boton_seleccionar_archivo.config(width=30, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
+        # Crear etiqueta y campo de texto para la lista de apartados
+        self.label_agenda = ttk.Label(self, text="Lista de Apartados:")
+        self.label_agenda.pack(pady=10)
+        self.text_agenda = tk.Text(self, height=10, width=50)
+        self.text_agenda.pack()
 
-        self.ruta_texto = tk.Text(self, height=1, width=30)
-        self.ruta_texto.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
-        self.ruta_texto.config(width = 50 , font = ("arial",12, ))
+        # Crear etiqueta y campo de texto para la lista de participantes
+        self.label_participantes = ttk.Label(self, text="Lista de Participantes:")
+        self.label_participantes.pack(pady=10)
+        self.text_participantes = tk.Text(self, height=10, width=50)
+        self.text_participantes.pack()
 
-        # Crear el label con texto rojo, centrado y dos líneas
-        texto = "El audio debe de estar segmentado \n si lo necesita utilice la función dividir audio"
-        self.advertencia = tk.Label(self, text=texto, foreground="red", justify="center", wraplength=200, height=2,font=("arial", 8, "bold"))
-        self.advertencia.grid(row=2, column=0, padx=10, pady=10,ipadx=10, ipady=10,columnspan=2)
+        # Crear etiqueta y campo de texto para la transcripción
+        self.label_transcripcion = ttk.Label(self, text="Transcripción:")
+        self.label_transcripcion.pack(pady=10)
+        self.entry_transcripcion = ttk.Entry(self, state="readonly")
+        self.entry_transcripcion.pack()
 
-        self.tabla = None  # Agregamos el atributo de la tabla
+        # Botón para seleccionar archivo de audio
+        self.boton_seleccionar_audio = ttk.Button(self, text="Seleccionar archivo de audio", command=self.seleccionar_archivo_audio)
+        self.boton_seleccionar_audio.pack(pady=10)
 
-    def almacenar_información(self, parrafo: str):
-        """
-        Almacena la información de la transcripción en un diccionario.
-        """
-        # Ocultar elementos de la interfaz
-        self.tabla.grid_forget()
-        self.boton_transcribir.grid_forget()
-        self.boton_ver_reportes.grid_forget()
+        # Instancias de las pestañas "Registro de agenda" y "Lista de participantes"
+        self.ventana_agenda = ventana_agenda
+        self.ventana_participantes = ventana_participantes
 
-        # Label de selección de tema y subtema
-        self.label_persona = tk.Label(self, text="Seleccione el carnet de la persona correspondiente")
-        self.label_persona.config(font = ("arial",10, "bold"))
-        self.label_persona.grid(row=0, column=0,sticky="w")
+        # Mostrar los participantes en el campo de texto "Lista de participantes"
+        self.actualizar_participantes()
+        self.mostrar_participantes()
 
-        self.label_general = tk.Label(self, text="Seleccione el tema correspondiente")
-        self.label_general.config(font = ("arial",10, "bold"))
-        self.label_general.grid(row=1, column=0,sticky="w")
+        # Mostrar los apartados en el campo de texto "Lista de apartados"
+        self.actualizar_agenda()
+        self.mostrar_agenda()
 
-        self.label_especifico = tk.Label(self, text="Seleccione el subtema correspondiente")
-        self.label_especifico.config(font = ("arial",10, "bold"))
-        self.label_especifico.grid(row=2, column=0,sticky="w")
+    def seleccionar_archivo_audio(self):
+        # Abrir el explorador de archivos y permitir al usuario seleccionar un archivo de audio
+        archivo_audio = filedialog.askopenfilename(filetypes=[("Archivos de audio", "*.mp3;*.wav")])
 
-        # Botones de selección de tema y subtema
-        self.opcion_seleccionada_persona = tk.StringVar(value=list(participantes.keys())[0])  # Valor inicial predeterminado
-        self.opcion_persona = tk.OptionMenu(self, self.opcion_seleccionada_persona, *participantes.keys())
-        self.opcion_persona.grid(row=0, column=1,padx=10, pady=10, sticky="ew")
+        # Verificar si se seleccionó un archivo de audio
+        if archivo_audio:
+            # Realizar la transcripción del audio
+            transcripcion_texto = self.obtener_transcripcion(archivo_audio)
 
-        self.opcion_seleccionada = tk.StringVar(value=list(agenda.keys())[0])  # Valor inicial predeterminado
-        self.opcion_general = tk.OptionMenu(self, self.opcion_seleccionada, *agenda.keys(), command=lambda _: self.actualizar_opcion_especifica())
-        self.opcion_general.grid(row=1, column=1,padx=10, pady=10, sticky="ew")
+            # Actualizar el campo de texto de la transcripción
+            self.entry_transcripcion.configure(state="normal")
+            self.entry_transcripcion.delete(0, tk.END)
+            self.entry_transcripcion.insert(0, transcripcion_texto)
+            self.entry_transcripcion.configure(state="readonly")
 
-        self.opcion_seleccionada_especifica = tk.StringVar(value=list(agenda[self.opcion_seleccionada.get()])[0])
-        self.opcion_especifica = tk.OptionMenu(self, self.opcion_seleccionada_especifica, *agenda[self.opcion_seleccionada.get()])
-        self.opcion_especifica.grid(row=2, column=1,padx=10, pady=10, sticky="ew")
+            # Ajustar el ancho del Entry al tamaño del texto de la transcripción
+            self.entry_transcripcion.configure(width=len(transcripcion_texto))
 
-        # Entry para mostrar el texto transcrito
-        self.parrafo = parrafo
-        self.texto_variable = tk.StringVar(value=self.parrafo)
+    def obtener_transcripcion(self, archivo):
+        # Crear un reconocedor de voz
+        reconocedor = sr.Recognizer()
 
-        self.texto_entry = tk.Text(self, height=5, width=30)
-        self.texto_entry.insert(tk.END, self.parrafo)
-        self.texto_entry.grid(row=0, column=2, rowspan=3, padx=10, pady=10, sticky="nsew")
+        # Cargar el archivo de audio
+        with sr.AudioFile(archivo) as fuente:
+            # Leer el archivo de audio
+            audio = reconocedor.record(fuente)
 
-        # Botón para guardar los cambios
-        self.boton_agregar = tk.Button(self, text="Agregar", command=self.guardar_cambios)
-        self.boton_agregar.grid(row=5, column=0, padx=5, pady=5)
-        self.boton_agregar.config(width=20, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
+        try:
+            # Realizar la transcripción del audio
+            texto = reconocedor.recognize_google(audio, language="es-ES")
+            return texto
+        except sr.UnknownValueError:
+            return "No se pudo transcribir el audio"
+        except sr.RequestError as e:
+            return f"Error al transcribir el audio: {e}"
+        
+    def obtener_agenda(self):
+        return self.agenda
 
-    def actualizar_opcion_especifica(self):
-        """
-        Actualiza la opción específica de acuerdo a la opción general seleccionada.
-        """
-        # Eliminar el menú de opciones específicas actual.
-        self.opcion_especifica.grid_forget()
+    def actualizar_agenda(self):
+        self.agenda = self.ventana_agenda.obtener_agenda()
+        self.mostrar_agenda()
 
-        # Crear el nuevo menú de opciones específicas nuevo y asigna el valor predeterminado.
-        self.opcion_seleccionada_especifica = tk.StringVar(value=list(agenda[self.opcion_seleccionada.get()])[0])
-        self.opcion_especifica = tk.OptionMenu(self, self.opcion_seleccionada_especifica, *agenda[self.opcion_seleccionada.get()])
-        self.opcion_especifica.grid(row=1, column=1, padx=2, pady=5)
+    def mostrar_agenda(self):
+        self.text_agenda.delete(1.0, tk.END)
+        for apartado, puntos in self.agenda:
+            self.text_agenda.insert(tk.END, f"- {apartado}\n")
+            for punto in puntos:
+                self.text_agenda.insert(tk.END, f"  - {punto}\n")
 
-    def guardar_cambios(self):
-        """
-        Guarda la información de la transcripción en un diccionario.
-        """
-        punto_general = self.opcion_seleccionada.get()
-        punto_especifico = self.opcion_seleccionada_especifica.get()
-        carnet = self.opcion_seleccionada_persona.get()
-        texto = self.texto_entry.get("1.0", tk.END)
-        modificar_participante(punto_general, punto_especifico, carnet, texto) # Agregar información a la base de datos
-        self.actualizar_tabla_segmentos()# Actualizar tabla de segmentos
+    def obtener_participantes(self):
+        return self.lista_participantes
 
-        # Terminar proceso de transcripción automáticamente
-        if len(self.archivos) == 0:
-            self.mostrar_reportes()   
+    def actualizar_participantes(self):
+        self.participantes = self.ventana_participantes.obtener_participantes()
+        self.mostrar_participantes()
 
-    def actualizar_tabla_segmentos(self):
-        """
-        Actualiza la tabla de segmentos de la interfaz.
-        """
-        # Olvidar elementos de la interfaz
-        for widget in self.winfo_children():
-            widget.grid_forget()
-
-        # Mostrar elementos de la interfaz
-        self.tabla_segmentos(self.archivos)
-
-    def mostar_tabla_segmentos(self):
-        """
-        Muestra la tabla de segmentos de la interfaz y elimina elementos de la interfaz.
-        """
-        archivos = seleccionar_carpeta_segmentos(self.ruta_texto)
-        self.archivos = archivos # Guardar los archivos para usarlos en otros métodos.
-        self.tabla_segmentos(self.archivos)
-
-        # Olvidar botones y entry de la interfaz
-        self.boton_seleccionar_archivo.grid_forget()
-        self.ruta_texto.grid_forget()
-        self.advertencia.grid_forget()
-
-    def tabla_segmentos(self, archivos):
-        """
-        Crea la tabla de segmentos de la interfaz con sus respectivos botones.
-
-        Args:
-            archivos (list): Lista con las rutas de los archivos de audio.
-        """
-        #NOTA : Agregar label para la tabla
-
-        contenedor_tabla = tk.Frame(self)
-        contenedor_tabla.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
-
-        self.tabla = ttk.Treeview(contenedor_tabla, height=10)
-        self.tabla["columns"] = ("Archivo")
-
-        self.tabla.column("#0", width=0, stretch=tk.NO)
-        self.tabla.column("Archivo", anchor=tk.W, width=400)
-
-        # Encabezado de la tabla.
-        self.tabla.heading("#0", text="")
-        self.tabla.heading("Archivo", text="Segmentos de audio")
-
-        # Insertar los segmentos en la tabla.
-        for archivo in archivos:
-            self.tabla.insert("", tk.END, text="", values=(archivo))
-
-        self.tabla.bind("<<TreeviewSelect>>", self.on_item_selected)
-        self.tabla.grid(row=4, column=0, padx=10, pady=10, sticky="nsew")
-
-        # Botón para iniciar la transcripción
-        self.boton_transcribir = tk.Button(self, text="Transcribir", state=tk.DISABLED,
-                                           command=self.transcribir_audio_seleccionado)
-        self.boton_transcribir.grid(row=4, column=0, padx=10, pady=10)
-        self.boton_transcribir.config(width=20, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
-
-        # Botón para finalizar la transcripción
-        self.boton_ver_reportes = tk.Button(self, text="Finalizar",
-                                           command=self.mostrar_reportes)
-        self.boton_ver_reportes.grid(row=4, column=3, padx=10, pady=10)
-        self.boton_ver_reportes.config(width=20, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
-    
-    def on_item_selected(self, event = None):
-        """
-        Habilita el botón de transcribir cuando se selecciona un item de la tabla.
-        """
-        # Obtener el item seleccionado.
-        item = self.tabla.selection()
-
-        if item:
-            self.boton_transcribir.config(state=tk.NORMAL)
-        else:
-            self.boton_transcribir.config(state=tk.DISABLED)
-
-    def transcribir_audio_seleccionado(self):
-        """
-        Llama a las funciones necesarias para traducir el audio seleccionado.
-        """
-        # Segmento seleccionado.
-        selected_item = self.tabla.focus()
-        if selected_item:
-            archivo_seleccionado = self.tabla.item(selected_item)["values"][0]
-            ruta_corregida = corregir_ruta_archivo(archivo_seleccionado) # Corregir la ruta del archivo
-            texto_transcrito = convertir_audio_a_texto(ruta_corregida) # Convertir el audio a texto
-            self.almacenar_información(texto_transcrito) # Almacenar la información en la base de datos
-            eliminar_segmento_usado(archivo_seleccionado,self.archivos) # Eliminar el segmento de la lista de segmentos
+    def mostrar_participantes(self):
+        self.text_participantes.delete(1.0, tk.END)
+        for participante in self.participantes:
+            self.text_participantes.insert(tk.END, f"- {participante}\n")
 
 class VentanaListaParticipantes(ttk.Frame):
-    def __init__(self, master):
+    def __init__(self, master, participantes):
         super().__init__(master)
-        self.participantes = set()
+        self.lista_participantes = participantes
 
         # Crear tabla de participantes
         self.tabla = ttk.Treeview(self, columns=("Carnet"))
@@ -290,6 +218,11 @@ class VentanaListaParticipantes(ttk.Frame):
         agregar_boton = ttk.Button(self, text="Agregar participante", command=self.agregar_participante)
         agregar_boton.pack(pady=10)
 
+    def actualizar_tabla_participantes(self):
+        self.tabla.delete(*self.tabla.get_children())
+        for participante in self.lista_participantes:
+            self.tabla.insert("", tk.END, text=participante)
+
     def seleccionar_fila(self, event):
         # Habilitar botones de editar y eliminar cuando se selecciona una fila
         if self.tabla.selection():
@@ -298,6 +231,110 @@ class VentanaListaParticipantes(ttk.Frame):
         else:
             self.editar_boton.pack_forget()
             self.eliminar_boton.pack_forget()
+
+    def editar_participante(self):
+        # Obtener fila seleccionada
+        fila = self.tabla.selection()[0]
+        nombre = self.tabla.item(fila, "text")
+        carnet = self.tabla.item(fila, "values")[0]
+
+        # Ventana para editar el participante
+        ventana_participante = tk.Toplevel(self.winfo_toplevel())
+        ventana_participante.title("Editar Participante")
+
+        label_nombre = tk.Label(ventana_participante, text="Nombre:")
+        label_nombre.pack(pady=10)
+
+        entry_nombre = tk.Entry(ventana_participante)
+        entry_nombre.insert(tk.END, nombre)
+        entry_nombre.pack(pady=10)
+
+        label_carnet = tk.Label(ventana_participante, text="Carnet:")
+        label_carnet.pack(pady=10)
+
+        entry_carnet = tk.Entry(ventana_participante)
+        entry_carnet.insert(tk.END, carnet)
+        entry_carnet.pack(pady=10)
+
+        button_guardar = tk.Button(ventana_participante, text="Guardar", command=lambda: [self.actualizar_participante(fila, entry_nombre.get(), entry_carnet.get()), ventana_participante.destroy()])
+        button_guardar.pack(pady=10)
+
+    def eliminar_participante(self):
+        # Obtener la fila seleccionada de la tabla
+        fila = self.tabla.selection()[0]
+        nombre = self.tabla.item(fila, "text")
+        
+        # Eliminar el participante del conjunto global
+        for participante in participantes:
+            if nombre == participante[0]:
+                participantes.remove(participante)
+                break
+        
+        # Eliminar la fila de la tabla
+        self.tabla.delete(fila)
+
+    def agregar_participante(self):
+        # Ventana para ingresar nombre y carnet del participante
+        ventana_participante = tk.Toplevel(self.winfo_toplevel())
+        ventana_participante.title("Agregar Participante")
+
+        label_nombre = tk.Label(ventana_participante, text="Ingrese el nombre del participante:")
+        label_nombre.pack(pady=10)
+
+        entry_nombre = tk.Entry(ventana_participante)
+        entry_nombre.pack(pady=10)
+
+        label_carnet = tk.Label(ventana_participante, text="Ingrese el carnet del participante:")
+        label_carnet.pack(pady=10)
+
+        entry_carnet = tk.Entry(ventana_participante)
+        entry_carnet.pack(pady=10)
+
+        button_guardar = tk.Button(ventana_participante, text="Guardar", command=lambda: [self.guardar_participante(entry_nombre.get(), entry_carnet.get()), ventana_participante.destroy()])
+        button_guardar.pack(pady=10)
+
+    def guardar_participante(self, nombre, carnet):
+        # Verificar si el carnet es un número entero
+        try:
+            carnet = int(carnet)
+        except ValueError:
+            messagebox.showerror("Error", "El carnet debe ser un número")
+            return
+
+        # Verificar si el carnet ya está en el conjunto de participantes
+        for participante in participantes:
+            if carnet == int(participante[1]):
+                messagebox.showerror("Error", f"El carnet '{carnet}' ya está registrado para otro participante")
+                return
+
+        # Agregar el participante al conjunto global
+        participantes.add((nombre, carnet))
+
+        # Actualizar la tabla de participantes
+        self.tabla.insert("", tk.END, text=nombre, values=(carnet,))
+
+    def actualizar_participante(self, fila, nombre, carnet):
+        # Verificar si el carnet es un número entero
+        try:
+            carnet = int(carnet)
+        except ValueError:
+            messagebox.showerror("Error", "El carnet debe ser un número")
+            return
+
+        # Verificar si el carnet ya está en el conjunto de participantes
+        for participante in participantes:
+            if carnet == int(participante[1]) and nombre != participante[0]:
+                messagebox.showerror("Error", f"El carnet '{carnet}' ya está registrado para otro participante")
+                return
+
+        # Eliminar participante anterior
+        self.eliminar_participante()
+
+        # Agregar el participante actualizado al conjunto global
+        participantes.add((nombre, carnet))
+
+        # Actualizar la tabla de participantes
+        self.tabla.insert("", tk.END, text=nombre, values=(carnet,))
 
 class VentanaRegistroAgenda(ttk.Frame):
     def __init__(self, master):
@@ -328,6 +365,111 @@ class VentanaRegistroAgenda(ttk.Frame):
         else:
             self.editar_boton.pack_forget()
             self.eliminar_boton.pack_forget()
+
+    def editar_apartado(self):
+    # Obtener fila seleccionada
+        fila = self.tabla.selection()[0]
+        apartado = self.tabla.item(fila, "text")
+        punto = self.tabla.item(fila, "values")[0]
+
+        # Ventana para editar el apartado y el punto
+        ventana_editar = tk.Toplevel(self.winfo_toplevel())
+        ventana_editar.title("Editar Apartado y Punto")
+
+        label_apartado = tk.Label(ventana_editar, text="Apartado:")
+        label_apartado.pack(pady=10)
+
+        entry_apartado = tk.Entry(ventana_editar)
+        entry_apartado.insert(tk.END, apartado)
+        entry_apartado.pack(pady=10)
+
+        label_punto = tk.Label(ventana_editar, text="Punto:")
+        label_punto.pack(pady=10)
+
+        entry_punto = tk.Entry(ventana_editar)
+        entry_punto.insert(tk.END, punto)
+        entry_punto.pack(pady=10)
+
+        button_guardar = tk.Button(ventana_editar, text="Guardar", command=lambda: [self.actualizar_apartado(fila, entry_apartado.get(), entry_punto.get()), ventana_editar.destroy()])
+        button_guardar.pack(pady=10)
+
+    def eliminar_apartado(self):
+        # Eliminar fila seleccionada de la tabla
+        fila = self.tabla.selection()[0]
+        self.tabla.delete(fila)
+    
+    def agregar_apartado_puntos(self):
+        # Ventana para ingresar apartado y puntos
+        ventana_ap = tk.Toplevel(self.winfo_toplevel())
+        ventana_ap.title("Agregar Apartado y Punto")
+
+        label_ap = tk.Label(ventana_ap, text="Ingrese el nombre del apartado:")
+        label_ap.pack(pady=10)
+
+        entry_ap = tk.Entry(ventana_ap)
+        entry_ap.pack(pady=10)
+
+        label_puntos = tk.Label(ventana_ap, text="Ingrese el punto correspondiente al apartado:")
+        label_puntos.pack(pady=10)
+
+        entry_puntos = tk.Entry(ventana_ap)
+        entry_puntos.pack(pady=10)
+
+        button_guardar = tk.Button(ventana_ap, text="Guardar", command=lambda: [self.guardar_apartado_puntos(entry_ap.get(), entry_puntos.get()), ventana_ap.destroy()])
+        button_guardar.pack(pady=10)
+
+    def guardar_apartado_puntos(self, apartado, punto):
+        # Verificar si el apartado ya existe en la lista de apartados
+        if apartado in self.apartados:
+            # Verificar si el punto ya existe dentro del apartado
+            if punto in self.apartados[apartado]:
+                messagebox.showerror("Error", f"El punto '{punto}' ya existe en el apartado '{apartado}'")
+                return
+            else:
+                # Agregar el punto al apartado existente
+                self.apartados[apartado].append(punto)
+        else:
+            # Crear un nuevo apartado con el punto correspondiente
+            self.apartados[apartado] = [punto]
+
+        # Actualizar la tabla de apartados
+        self.tabla.insert("", tk.END, text=apartado, values=(punto))
+
+    def actualizar_apartado(self, fila, apartado, punto):
+        # Verificar si el apartado ya existe en la lista de apartados
+        if apartado in self.apartados:
+            # Verificar si el punto ya existe dentro del apartado
+            if punto in self.apartados[apartado]:
+                messagebox.showerror("Error", f"El punto '{punto}' ya existe en el apartado '{apartado}'")
+                return
+            else:
+                # Eliminar el punto anterior del apartado
+                self.apartados[apartado].remove(self.tabla.item(fila, "values")[0])
+                # Agregar el punto actualizado al apartado existente
+                self.apartados[apartado].append(punto)
+        else:
+            # Crear un nuevo apartado con el punto correspondiente
+            self.apartados[apartado] = [punto]
+
+        # Actualizar la tabla de apartados
+        self.guardar_edicion(fila, apartado, punto)
+
+    def guardar_edicion(self, fila, apartado, punto):
+        # Actualizar valores de la fila seleccionada
+        self.tabla.item(fila, text=apartado, values=(punto))
+
+    def agregar_apartado_y_punto(apartado, punto):
+        # buscar si el apartado ya está en la agenda
+        encontrado = False
+        for a in agenda:
+            if a[0] == apartado:
+                # si el apartado existe, agregar el punto al conjunto de puntos del apartado
+                a[1].add(punto)
+                encontrado = True
+                break
+        # si el apartado no existe, agregarlo como un nuevo conjunto de puntos
+        if not encontrado:
+            agenda.add((apartado, {punto}))
 
 if __name__ == '__main__':
     root = tk.Tk()
