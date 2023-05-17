@@ -1,9 +1,14 @@
 import tkinter as tk
-from tkinter import ttk
 from Interfaz import VentanaDivisorAudio, VentanaListaParticipantes, VentanaRegistroAgenda, VentanaTranscripcion
 
 class VentanaPrincipal:
     def __init__(self, master):
+        """
+        Constructor de la clase VentanaPrincipal.
+
+        Args:
+            master (): Objeto de la clase Tk.
+        """
         self.master = master
         self.agenda = set()  # Conjunto de apartados con sus puntos asignados
         self.participantes = set()  # Conjunto de participantes
@@ -41,12 +46,30 @@ class VentanaPrincipal:
         self.ventana_transcripcion.pack(fill=tk.BOTH, expand=True)
 
     def actualizar_agenda(self):
+        """
+        Método para actualizar la agenda en la pestaña de transcripción.
+
+        Args:
+            agenda (set): Conjunto de apartados con sus puntos asignados.
+        """
         self.ventana_transcripcion.actualizar_agenda(self.agenda)
 
     def actualizar_participantes(self):
+        """
+        Método para actualizar la lista de participantes en la pestaña de transcripción.
+
+        Args:
+            participantes (set): Conjunto de participantes.
+        """
         self.ventana_transcripcion.actualizar_participantes(self.participantes)
 
     def agregar_participante(self):
+        """
+        Método para agregar un participante a la lista de participantes.
+
+        Attributes:
+            participante (str): Nombre del participante.
+        """
         participante = self.ventana_lista.entry_participante.get()
         self.participantes.add(participante)
         self.ventana_lista.actualizar_participantes()  # Llamada al método para actualizar la lista en la pestaña de transcripción
