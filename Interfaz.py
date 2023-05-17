@@ -3,57 +3,6 @@ from tkinter import ttk, messagebox, filedialog
 import speech_recognition as sr
 from Logic import seleccionar_archivo, seleccionar_carpeta_destino, dividir_audio, participantes, agenda
 
-class VentanaPrincipal:
-    def __init__(self, master):
-        self.master = master
-        self.agenda = set()  # Conjunto de apartados con sus puntos asignados
-        self.participantes = set()  # Conjunto de participantes
-
-        master.title("Interfaz de usuario")
-
-        # creación de pestañas
-        self.notebook = tk.ttk.Notebook(master)
-        self.tab_registro = tk.Frame(self.notebook)
-        self.tab_lista = tk.Frame(self.notebook)
-        self.tab_divisor = tk.Frame(self.notebook)
-        self.tab_transcripcion = tk.Frame(self.notebook)
-
-        # agregando pestañas al notebook
-        self.notebook.add(self.tab_registro, text="Registro de agenda")
-        self.notebook.add(self.tab_lista, text="Lista de participantes")
-        self.notebook.add(self.tab_divisor, text="Divisor de Audio")
-        self.notebook.add(self.tab_transcripcion, text="Transcripción")
-        self.notebook.pack(expand=True, fill='both')
-
-        # agregando VentanaRegistroAgenda a la pestaña "Registro de agenda"
-        self.ventana_registro = VentanaRegistroAgenda(self.tab_registro)
-        self.ventana_registro.pack(fill=tk.BOTH, expand=True)
-
-        # agregando VentanaListaParticipantes a la pestaña "Lista de participantes"
-        self.ventana_lista = VentanaListaParticipantes(self.tab_lista, self.participantes)
-        self.ventana_lista.pack(fill=tk.BOTH, expand=True)
-
-        # agregando VentanaDivisorAudio a la pestaña "Divisor de Audio"
-        self.ventana_divisor = VentanaDivisorAudio(self.tab_divisor)
-        self.ventana_divisor.pack(fill=tk.BOTH, expand=True)
-
-        # agregando VentanaTranscripcion a la pestaña "Transcripción"
-        self.ventana_transcripcion = VentanaTranscripcion(self.tab_transcripcion, self.ventana_registro.apartados, self.ventana_lista.lista_participantes)
-        self.ventana_transcripcion.pack(fill=tk.BOTH, expand=True)
-
-    def actualizar_agenda(self):
-        self.ventana_transcripcion.actualizar_agenda(self.agenda)
-
-    def actualizar_participantes(self):
-        self.ventana_transcripcion.actualizar_participantes(self.participantes)
-
-    def agregar_participante(self):
-        participante = self.ventana_lista.entry_participante.get()
-        self.participantes.add(participante)
-        self.ventana_lista.actualizar_participantes()  # Llamada al método para actualizar la lista en la pestaña de transcripción
-        self.ventana_lista.actualizar_tabla_participantes()  # Llamada al método para actualizar la tabla de participantes
-        self.ventana_lista.entry_participante.delete(0, tk.END)
-
 class VentanaDivisorAudio(tk.Frame):
     """
     Clase que contiene los elementos de la ventana de división de audio.
@@ -68,11 +17,9 @@ class VentanaDivisorAudio(tk.Frame):
         # Etiqueta y botón para seleccionar el archivo de audio
         etiqueta_archivo = tk.Label(self, text="Archivo de audio:")
         etiqueta_archivo.grid(row=0, column=0, padx=5, pady=5)
-        etiqueta_archivo.config(font=("arial", 12, "bold"))
 
         boton_seleccionar_archivo = tk.Button(self, text="Seleccionar archivo", command=lambda: seleccionar_archivo(self.ruta_texto))
         boton_seleccionar_archivo.grid(row=1, column=0, padx=10, pady=10)
-        boton_seleccionar_archivo.config(width=20, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
 
         self.ruta_texto = tk.Text(self, height=1)
         self.ruta_texto.grid(row=2, column=0, padx=10, pady=10)
@@ -80,11 +27,9 @@ class VentanaDivisorAudio(tk.Frame):
         # Etiqueta y campo de texto para especificar la carpeta de destino
         etiqueta_carpeta_destino = tk.Label(self, text="Carpeta de destino:")
         etiqueta_carpeta_destino.grid(row=3, column=0, padx=5, pady=5)
-        etiqueta_carpeta_destino.config(font=("arial", 12, "bold"))
 
         boton_seleccionar_carpeta = tk.Button(self, text="Seleccionar carpeta", command=lambda: seleccionar_carpeta_destino(self.ruta_carpeta_texto))
         boton_seleccionar_carpeta.grid(row=4, column=0, padx=10, pady=10)
-        boton_seleccionar_carpeta.config(width=20, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
 
         self.ruta_carpeta_texto = tk.Text(self, height=1)
         self.ruta_carpeta_texto.grid(row=5, column=0, padx=10, pady=10)
@@ -92,7 +37,6 @@ class VentanaDivisorAudio(tk.Frame):
         # Botón para iniciar la división del audio
         boton_dividir_audio = tk.Button(self, text="Dividir audio", command=lambda: dividir_audio(self.ruta_carpeta_texto, self.ruta_texto))
         boton_dividir_audio.grid(row=6, column=0, padx=10, pady=10)
-        boton_dividir_audio.config(width=20, font=("arial", 12, "bold"), bg="#34495E", activebackground="#B0BEC5", fg="white", cursor="hand2")
 
 class VentanaTranscripcion(ttk.Frame):
     def __init__(self, master, ventana_agenda, ventana_participantes):
@@ -175,7 +119,7 @@ class VentanaTranscripcion(ttk.Frame):
         return self.agenda
 
     def actualizar_agenda(self):
-        self.agenda = self.ventana_agenda.obtener_agenda()
+        self.agenda = self.ventana_agenda
         self.mostrar_agenda()
 
     def mostrar_agenda(self):
@@ -189,7 +133,7 @@ class VentanaTranscripcion(ttk.Frame):
         return self.lista_participantes
 
     def actualizar_participantes(self):
-        self.participantes = self.ventana_participantes.obtener_participantes()
+        self.participantes = self.ventana_agenda
         self.mostrar_participantes()
 
     def mostrar_participantes(self):
@@ -470,8 +414,3 @@ class VentanaRegistroAgenda(ttk.Frame):
         # si el apartado no existe, agregarlo como un nuevo conjunto de puntos
         if not encontrado:
             agenda.add((apartado, {punto}))
-
-if __name__ == '__main__':
-    root = tk.Tk()
-    ventana_principal = VentanaPrincipal(root)
-    root.mainloop()
