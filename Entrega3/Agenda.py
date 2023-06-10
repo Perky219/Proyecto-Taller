@@ -66,45 +66,46 @@ class agenda:
     """Estructura de datos tipo árbol m-vías para la representación de agendas
     """
     def __init__(self) -> None:
-        """Constructor de la agenda
+        """
+        Constructor de la agenda
         """
         self.participantes:persona=None     #Listado de participantes
         self.apartados:apartados=None       #Listado de apartados
 
-#ejemplo de instancia de agenda del gráfico presente en la documentación del proyecto
-agenda1=agenda()
+# #ejemplo de instancia de agenda del gráfico presente en la documentación del proyecto
+# agenda1=agenda()
 
-#Registro de participantes en la agenda
-agenda1.participantes=persona('Persona1','Sin', 'Apellidos')
-agenda1.participantes.sig=persona('Persona2','Sin', 'Apellidos')
-agenda1.participantes.sig.sig=persona('Persona3','Sin', 'Apellidos')
+# #Registro de participantes en la agenda
+# agenda1.participantes=persona('Persona1','Sin', 'Apellidos')
+# agenda1.participantes.sig=persona('Persona2','Sin', 'Apellidos')
+# agenda1.participantes.sig.sig=persona('Persona3','Sin', 'Apellidos')
 
-#Registro de apartados
-agenda1.apartados=apartados('Apartado1')
-agenda1.apartados.sig=apartados('Apartado2')
-agenda1.apartados.sig.sig=apartados('Apartado3')
+# #Registro de apartados
+# agenda1.apartados=apartados('Apartado1')
+# agenda1.apartados.sig=apartados('Apartado2')
+# agenda1.apartados.sig.sig=apartados('Apartado3')
 
-#Registro de puntos
-agenda1.apartados.puntos=puntos('Punto1')
-agenda1.apartados.puntos.sig=puntos('Punto2')
-agenda1.apartados.sig.puntos=puntos('Punto3')
-agenda1.apartados.sig.sig.puntos=puntos('Punto4')
-agenda1.apartados.sig.sig.puntos.sig=puntos('Punto5')
+# #Registro de puntos
+# agenda1.apartados.puntos=puntos('Punto1')
+# agenda1.apartados.puntos.sig=puntos('Punto2')
+# agenda1.apartados.sig.puntos=puntos('Punto3')
+# agenda1.apartados.sig.sig.puntos=puntos('Punto4')
+# agenda1.apartados.sig.sig.puntos.sig=puntos('Punto5')
 
-#Registro de discusiones
-agenda1.apartados.puntos.discusiones=discusion(agenda1.participantes,'discusión1')
-agenda1.apartados.puntos.discusiones.sig=discusion(agenda1.participantes.sig,'discusión2')
+# #Registro de discusiones
+# agenda1.apartados.puntos.discusiones=discusion(agenda1.participantes,'discusión1')
+# agenda1.apartados.puntos.discusiones.sig=discusion(agenda1.participantes.sig,'discusión2')
 
-agenda1.apartados.puntos.sig.discusiones=discusion(agenda1.participantes,'discusión1')
-agenda1.apartados.puntos.sig.discusiones.sig=discusion(agenda1.participantes.sig,'discusión2')
-agenda1.apartados.puntos.sig.discusiones.sig=discusion(agenda1.participantes,'discusión3')
+# agenda1.apartados.puntos.sig.discusiones=discusion(agenda1.participantes,'discusión1')
+# agenda1.apartados.puntos.sig.discusiones.sig=discusion(agenda1.participantes.sig,'discusión2')
+# agenda1.apartados.puntos.sig.discusiones.sig=discusion(agenda1.participantes,'discusión3')
 
-agenda1.apartados.sig.puntos.discusiones=discusion(agenda1.participantes,'discusión1')
-agenda1.apartados.sig.puntos.discusiones.sig=discusion(agenda1.participantes.sig.sig,'discusión2')
+# agenda1.apartados.sig.puntos.discusiones=discusion(agenda1.participantes,'discusión1')
+# agenda1.apartados.sig.puntos.discusiones.sig=discusion(agenda1.participantes.sig.sig,'discusión2')
 
-agenda1.apartados.sig.sig.puntos.discusiones=discusion(agenda1.participantes.sig,'discusión3')
+# agenda1.apartados.sig.sig.puntos.discusiones=discusion(agenda1.participantes.sig,'discusión3')
 
-agenda1.apartados.sig.sig.puntos.sig.discusiones=discusion(agenda1.participantes,'discusión2')
-agenda1.apartados.sig.sig.puntos.sig.discusiones.sig=discusion(agenda1.participantes.sig.sig,'discusión2')
+# agenda1.apartados.sig.sig.puntos.sig.discusiones=discusion(agenda1.participantes,'discusión2')
+# agenda1.apartados.sig.sig.puntos.sig.discusiones.sig=discusion(agenda1.participantes.sig.sig,'discusión2')
 
-pass
+# pass
