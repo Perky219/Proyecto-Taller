@@ -126,7 +126,19 @@ def agregar_participante(nombre: str, apellido1: str, apellido2: str) -> None:
         apellido2 (str): Segundo apellido del participante.
     """
     global agenda
-    agenda.agregar_participante(nombre,apellido1,apellido2)
+    agenda.agregar_participante(nombre, apellido1, apellido2)
+
+def personas_asList() -> list:
+    """Función que devuelve una lista con los participantes de la agenda.
+
+    Returns:
+        list: Lista con los participantes de la agenda.
+    """
+    global agenda
+    try:
+        return agenda.participantes.asList
+    except:
+        messagebox.showerror("Error","No hay participantes en la agenda.")
 
 class MiApartado(Apartados):
     def __init__(self, apartado: str) -> None:
@@ -199,7 +211,7 @@ def agregar_punto(punto: str, apartado: str) -> None:
         apartado (str): Nombre del apartado.
     """
     global agenda
-    agenda.agregar_punto(punto,apartado)
+    agenda.agregar_punto(punto, apartado)
 
 class MiDiscusión(Discusion):
     def __init__(self,persona,discusión) -> None:
@@ -208,18 +220,6 @@ class MiDiscusión(Discusion):
 def agregar_discusión(persona: str, apartado: str, punto: str, discusión: str) -> None:
     global agenda
     agenda.agregar_discusión(persona,apartado,punto,discusión)
-
-def personas_asList() -> list:
-    """Función que devuelve una lista con los participantes de la agenda.
-
-    Returns:
-        list: Lista con los participantes de la agenda.
-    """
-    global agenda
-    try:
-        return agenda.participantes.asList
-    except:
-        messagebox.showerror("Error","No hay participantes en la agenda.")
 
 def puntos_asDict() -> list:
     """Función que devuelve un diccionario con los apartados y sus puntos.
