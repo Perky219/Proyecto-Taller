@@ -138,7 +138,7 @@ def personas_asList() -> list:
     try:
         return agenda.participantes.asList
     except:
-        messagebox.showerror("Error","No hay participantes en la agenda.")
+        return []
 
 class MiApartado(Apartados):
     def __init__(self, apartado: str) -> None:
@@ -219,7 +219,7 @@ class MiDiscusión(Discusion):
 
 def agregar_discusión(persona: str, apartado: str, punto: str, discusión: str) -> None:
     global agenda
-    agenda.agregar_discusión(persona,apartado,punto,discusión)
+    agenda.agregar_discusión(persona, apartado, punto, discusión)
 
 def puntos_asDict() -> list:
     """Función que devuelve un diccionario con los apartados y sus puntos.
@@ -231,4 +231,30 @@ def puntos_asDict() -> list:
     try:
         return agenda.apartados.asDict
     except:
-        messagebox.showerror("Error","No hay apartados en la agenda.")
+        return {"apartado": []}
+
+
+
+
+
+
+def recorrer_arbol():
+    global agenda
+    
+    apartado_actual = agenda.apartados
+    while apartado_actual is not None:
+        print("Apartado: ", apartado_actual.apartado)
+
+        punto_actual = apartado_actual.puntos
+        while punto_actual is not None:
+            print("Punto: ", punto_actual.punto)
+
+            discusion_actual = punto_actual.discusiones
+            while discusion_actual is not None:
+                print("Discusión: ", discusion_actual.discusion)
+                print("Persona: ", discusion_actual.persona)
+                discusion_actual = discusion_actual.sig
+
+            punto_actual = punto_actual.sig
+
+        apartado_actual = apartado_actual.sig
