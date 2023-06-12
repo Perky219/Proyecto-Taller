@@ -1,6 +1,6 @@
 import customtkinter as ctk
 import tkinter.messagebox as messagebox
-from LogicaAgenda import crear_agenda, agregar_participante, agregar_apartado, agregar_punto, personas_asList, puntos_asDict
+from LogicaAgenda import crear_agenda, agregar_participante, agregar_apartado, agregar_punto, agregar_discusion, personas_asList, puntos_asDict
 from datetime import datetime
 
 class VentanaPrincipal:
@@ -88,9 +88,10 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
 
     def __init__(self, ventana_principal, value): # se recibe la ventana principal y el valor que indica que ventana secundaria se va a crear
         """Constructor de la clase VentanaSuperpuesta"""
-        lista_participantes = personas_asList() # se crea una lista con los participantes
-        apartados_puntos = puntos_asDict() # se crea un diccionario con los apartados y sus puntos
-        apartados = apartados_puntos.keys() # se crea una lista con los apartados
+        self.lista_participantes = personas_asList() # se crea una lista con los participantes
+        self.dict_apartados_puntos = puntos_asDict() # se crea un diccionario con los apartados y sus puntos
+        self.apartados = list(self.dict_apartados_puntos.keys()) # se crea una lista con los apartados
+        self.puntos = [] # se crea una lista vacía para los puntos
 
         self.mini_window = ctk.CTkFrame(ventana_principal, width=500, height=400, fg_color="gray") # se crea la ventana secundaria
         self.mini_window.place(x=200, y=70) # se posiciona la ventana secundaria
@@ -143,34 +144,44 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
             self.label_seleccionar_punto = ctk.CTkLabel(self.mini_window, text="Punto del apartado", font=("Arial", 18)) # se crea el label que indica seleccionar el punto
             self.label_seleccionar_participante = ctk.CTkLabel(self.mini_window, text="Participante", font=("Arial", 18)) # se crea el label que indica seleccionar el participante
 
-            self.menu_opciones_apartados = ctk.CTkOptionMenu(self.mini_window, values=apartados) # se crea el menu de apartados
-            self.menu_opciones_puntos = ctk.CTkOptionMenu(self.mini_window, values=["Puntos"]) # se crea el menu de puntos
-            self.menu_opciones_participantes = ctk.CTkOptionMenu(self.mini_window, values=lista_participantes) # se crea el menu de participantes
-
             self.label_seleccionar_apartados.place(x=50, y=10) # se le da una ubicacion al label de seleccionar
             self.label_seleccionar_punto.place(x=170, y=10) # se le da una ubicaion al label al label de seleccionar punto
             self.label_seleccionar_participante.place(x=350, y=10) # se le da una ubicacion al label de seleccionar participante
 
-            self.discusion = ctk.CTkLabel(self.mini_window, text=" Discusion: ", font=("Arial", 18)) # se crea el label que indica la discusion que se va a crear
-            self.discusion.place(x=50, y=100) # se la da una ubicacion al label de donde se ingresan las discusiones
-            self.entry_discusion = ctk.CTkEntry(self.mini_window, width=400, height=65, placeholder_text="Ingrese la discusion", justify="center") # se crea el entry donde se ingresan las discusiones
-            self.entry_discusion.place(x=50, y=135) # se le da una ubicacion al entry de las discusiones
+            self.menu_opciones_apartados = ctk.CTkOptionMenu(self.mini_window, values=self.apartados) # se crea el menu de apartados
+            self.menu_opciones_puntos = ctk.CTkOptionMenu(self.mini_window, values=self.puntos) # se crea el menu de puntos
+            self.menu_opciones_participantes = ctk.CTkOptionMenu(self.mini_window, values=self.lista_participantes,) # se crea el menu de participantes
 
             self.menu_opciones_apartados.place(x=25, y=43) # se le da una ubicacion al menu de apartados
             self.menu_opciones_puntos.place(x=175, y=43) # se le da una ubicacion al menu de puntos
             self.menu_opciones_participantes.place(x=330, y=43) # se le da una ubicacion al menu de participantes
 
-            self.btn_guardar = ctk.CTkButton(self.mini_window, text="Guardar") # se crea el boton guardar
-            self.btn_guardar.place(x=25, y=210) # se le da una ubicacion
+            self.menu_opciones_apartados.set(value="No hay apartados") # se le da un valor por defecto al menu de apartados
+            self.menu_opciones_puntos.set(value="No hay puntos") # se le da un valor por defecto al menu de puntos
+            self.menu_opciones_participantes.set(value="No hay participantes") # se le da un valor por defecto al menu de participantes
 
-            self.btn_eliminar = ctk.CTkButton(self.mini_window, text="Eliminar") # se crea el boton de eliminar
-            self.btn_eliminar.place(x=175, y=210) # se le da una ubicacion
+            self.label_discusion = ctk.CTkLabel(self.mini_window, text=" Discusion: ", font=("Arial", 18)) # se crea el label que indica la discusion que se va a crear
+            self.label_discusion.place(x=50, y=120) # se la da una ubicacion al label de donde se ingresan las discusiones
+            self.entry_discusion = ctk.CTkEntry(self.mini_window, width=400, height=65, placeholder_text="Ingrese la discusion", justify="center") # se crea el entry donde se ingresan las discusiones
+            self.entry_discusion.place(x=50, y=155) # se le da una ubicacion al entry de las discusiones
 
-            self.btn_modificar = ctk.CTkButton(self.mini_window, text="Modificar") # se crea el boton de modificar
-            self.btn_modificar.place(x=325, y=210) # se le da una ubicacion
+            self.boton_guardar = ctk.CTkButton(self.mini_window, text="Guardar", command=self.guardar_discusion) # se crea el boton guardar
+            self.boton_guardar.place(x=25, y=240) # se le da una ubicacion
+
+            self.boton_eliminar = ctk.CTkButton(self.mini_window, text="Eliminar") # se crea el boton de eliminar
+            self.boton_eliminar.place(x=175, y=240) # se le da una ubicacion
+
+            self.boton_modificar = ctk.CTkButton(self.mini_window, text="Modificar") # se crea el boton de modificar
+            self.boton_modificar.place(x=325, y=240) # se le da una ubicacion
+
+            self.boton_actualizar = ctk.CTkButton(self.mini_window, text="Actualizar puntos", command=self.actualizar_puntos) # se crea el boton de actualizar
+            self.boton_actualizar.place(x=25, y=80) # se le da una ubicacion
+
 
     def crear_entries(self): # Crear los entries para ingresar los puntos
         num_puntos = int(self.entry_cant_puntos.get())  # Obtener el número de puntos ingresado como entero
+        self.entry_cant_puntos.delete(0, "end") # Borrar el número de puntos ingresado
+        self.entry_cant_puntos.configure(state="disabled") # Deshabilitar el entry de número de puntos
         self.entries = [] # Lista para guardar los entries
 
         for i in range(num_puntos): # Crear los entries
@@ -206,6 +217,8 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
 
         self.entry_apartado.delete(0, "end") # Borrar el nombre del entry
 
+        self.entry_cant_puntos.configure(state="normal") # Habilitar el entry de número de puntos
+
         if self.nombre_apartado.strip() == "": # Verificar que el nombre no esté vacío
             messagebox.showerror("Error", "Debe agregar un nombre al apartado.") # Mostrar mensaje de error
             return # Terminar la función
@@ -228,6 +241,26 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
     def guardar_todo(self): # Guardar todo
         self.guardar_apartado() # Guardar el apartado
         self.guardar_puntos(self.nombre_apartado) # Guardar los puntos
+
+    def actualizar_puntos(self): # Actualizar los puntos
+        self.apartado_seleccionado=self.menu_opciones_apartados.get() # Obtener el apartado seleccionado
+        self.puntos = list(self.dict_apartados_puntos.get(self.apartado_seleccionado,[])) # Obtener los puntos del apartado seleccionado
+        self.menu_opciones_puntos.configure(values=self.puntos) # Actualizar los puntos en el menú de opciones
+
+    def guardar_discusion(self): # Guardar una discusión
+        apartado_seleccionado=self.menu_opciones_apartados.get()
+        punto_seleccionado=self.menu_opciones_puntos.get()
+        persona_seleccionada=self.menu_opciones_participantes.get()
+        discusion=self.entry_discusion.get()
+
+        self.entry_discusion.delete(0, "end") # Borrar la discusión del entry
+        self.menu_opciones_participantes.set("Participante") # Reiniciar el menú de opciones de participantes
+        self.menu_opciones_apartados.set("Apartado") # Reiniciar el menú de opciones de apartados
+        self.menu_opciones_puntos.set("Punto") # Reiniciar el menú de opciones de puntos
+
+        messagebox.showinfo("Información", "Discusión agregada correctamente.") # Mostrar mensaje de información
+
+        agregar_discusion(apartado_seleccionado, punto_seleccionado, persona_seleccionada, discusion) # Agregar la discusión a la base de datos
 
 ventana = VentanaPrincipal() # Crear la ventana
 ventana.ventana_principal.mainloop() # Mostrar la ventana

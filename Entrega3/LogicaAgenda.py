@@ -11,32 +11,20 @@ class MiAgenda(Agenda):
         self.apartados:MiApartado=None
         
     def agregar_participante(self, nombre: str, apellido1: str, apellido2: str):
-        if self.participantes==None:
-            self.participantes=MiPersona(nombre=nombre,apellido1=apellido1,apellido2=apellido2)
-        else:
-            self.participantes.agregar(nombre,apellido1,apellido2)
+            if self.participantes == None:
+                self.participantes = MiPersona(nombre=nombre, apellido1=apellido1, apellido2=apellido2)
+            else:
+                self.participantes.agregar(nombre, apellido1, apellido2)
 
-    def agregar_apartado(self,apartado:str):
-        if self.apartados==None:
-            self.apartados=MiApartado(apartado)
+    def agregar_apartado(self, apartado: str):
+        if self.apartados == None:
+            self.apartados = MiApartado(apartado)
         else:
             self.apartados.agregar(apartado)
 
     def agregar_punto(self, punto: str, apartado: str):
         if self.apartados is not None:
-            nodo_actual = self.apartados
-            while nodo_actual is not None:
-                if nodo_actual.apartado == apartado:
-                    if nodo_actual.puntos is None:
-                        nodo_actual.puntos = MiPunto(punto)
-                    else:
-                        nodo_puntos = nodo_actual.puntos
-                        while nodo_puntos.sig is not None:
-                            nodo_puntos = nodo_puntos.sig
-                        nodo_puntos.sig = MiPunto(punto)
-                    break
-                else:
-                    nodo_actual = nodo_actual.sig
+            self.apartados.agregar_punto_recursivo(punto, apartado)
         else:
             self.apartados = MiApartado(apartado)
             self.apartados.puntos = MiPunto(punto)
@@ -144,16 +132,29 @@ class MiApartado(Apartados):
     def __init__(self, apartado: str) -> None:
         super().__init__(apartado)
 
-    def agregar(self,apartado:str):
-        nuevo_apartado= MiApartado(apartado)
-        self._agregar(self,nuevo_apartado)
+    def agregar(self, apartado: str):
+            nuevo_apartado = MiApartado(apartado)
+            self._agregar_recursivo(self, nuevo_apartado)
 
-    def _agregar(self,r,a):
-        if r==None:
+    def agregar_punto_recursivo(self, punto: str, apartado: str):
+        if self.apartado == apartado:
+            if self.puntos is None:
+                self.puntos = MiPunto(punto)
+            else:
+                self.puntos.agregar_punto_recursivo(punto)
+        elif self.sig is not None:
+            self.sig.agregar_punto_recursivo(punto, apartado)
+        else:
+            nuevo_apartado = MiApartado(apartado)
+            nuevo_apartado.puntos = MiPunto(punto)
+            self.sig = nuevo_apartado
+
+    def _agregar_recursivo(self, r, a):
+        if r is None:
             return a
         else:
-            r.sig=self._agregar(r.sig,a)
-            return r # Conserva la referencias referencias anteriores
+            r.sig = self._agregar_recursivo(r.sig, a)
+            return r
         
     def obtener_puntos(self):
         result = []
@@ -189,6 +190,12 @@ class MiPunto(Puntos):
     def __init__(self, punto: str) -> None:
         super().__init__(punto)
 
+    def agregar_punto_recursivo(self, punto: str):
+        if self.sig is None:
+            self.sig = MiPunto(punto)
+        else:
+            self.sig.agregar_punto_recursivo(punto)
+
     @property
     def asList(self):
         if self==None:
@@ -217,7 +224,7 @@ class MiDiscusión(Discusion):
     def __init__(self,persona,discusión) -> None:
         super().__init__(persona,discusión)
 
-def agregar_discusión(persona: str, apartado: str, punto: str, discusión: str) -> None:
+def agregar_discusion(persona: str, apartado: str, punto: str, discusión: str) -> None:
     global agenda
     agenda.agregar_discusión(persona, apartado, punto, discusión)
 
@@ -231,7 +238,7 @@ def puntos_asDict() -> list:
     try:
         return agenda.apartados.asDict
     except:
-        return {"apartado": []}
+        return {"": ""}
 
 
 
