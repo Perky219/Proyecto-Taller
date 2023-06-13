@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda {{ fecha }}</title>
+</head>
+<body>
+    <h1>{{ descripcion }}</h1>
+    <h2>
+        Fecha de la sesión: {{ fecha }}            
+        <br>
+        Lugar: Sala de sesiones de computación
+        <hr>
+    </h2>
+    <h2>Participantes</h2>
+    <ul>
+        {% for participante in participantes %}
+            <li>{{ participante }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Agenda</h2>
+    <ul type="I">
+        {% for apartado, puntos in registro_discusion.items() %}
+            <li>{{ apartado }}
+                <ol type="1">
+                    {% for punto, discusiones in puntos.items() %}
+                        <li>{% if punto|length > 0 %}{{ punto }}{% endif %}
+                            {% if discusiones|length > 0 %}
+                                <ul type="disc">
+                                    {% for discusion in discusiones %}
+                                        <h3>[Transcripción de la discusión]</h3>
+                                        <strong>{{ discusion['persona'] }}:</strong>
+                                        <p style="{{ discusion['estilo'] }}">{{ discusion['texto'] }}</p>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ol>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

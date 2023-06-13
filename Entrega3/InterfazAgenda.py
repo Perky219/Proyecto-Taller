@@ -1,7 +1,18 @@
 import customtkinter as ctk
 import tkinter.messagebox as messagebox
-from LogicaAgenda import crear_agenda, agregar_participante, agregar_apartado, agregar_punto, agregar_discusion, personas_asList, puntos_asDict
 from datetime import datetime
+import webbrowser
+import webview
+from LogicaAgenda import (
+    crear_agenda,
+    crear_participante,
+    crear_apartado,
+    crear_punto,
+    crear_discusion,
+    personas_asList,
+    puntos_asDict,
+    agenda
+)
 
 class VentanaPrincipal:
     def __init__(self):
@@ -58,9 +69,15 @@ class VentanaPrincipal:
         VentanaSuperpuesta(self.ventana_principal, "Discusiones")
 
     def generar_html(self):
+        agenda_web = "http://127.0.0.1:5500/Entrega3/Agenda.html"
         if not self.agenda_nombre_asignado:
             messagebox.showerror("Error", "Debe agregar un nombre a la agenda.")
             return
+
+        messagebox.showinfo("Éxito", "Página HTML generada correctamente.")
+
+        # Abrir el archivo HTML en el navegador web predeterminado
+        webbrowser.open(agenda_web, new=1)
 
     def guardar_agenda(self):
         fecha = datetime.today().strftime("%d/%m/%Y")
@@ -150,7 +167,7 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
 
             self.menu_opciones_apartados = ctk.CTkOptionMenu(self.mini_window, values=self.apartados) # se crea el menu de apartados
             self.menu_opciones_puntos = ctk.CTkOptionMenu(self.mini_window, values=self.puntos) # se crea el menu de puntos
-            self.menu_opciones_participantes = ctk.CTkOptionMenu(self.mini_window, values=self.lista_participantes,) # se crea el menu de participantes
+            self.menu_opciones_participantes = ctk.CTkOptionMenu(self.mini_window, values=self.lista_participantes) # se crea el menu de participantes
 
             self.menu_opciones_apartados.place(x=25, y=43) # se le da una ubicacion al menu de apartados
             self.menu_opciones_puntos.place(x=175, y=43) # se le da una ubicacion al menu de puntos
@@ -210,7 +227,7 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
         else: # Si no hay errores
             messagebox.showinfo("Información", "Participante agregado correctamente.") # Mostrar mensaje de información
 
-        agregar_participante(nombre_participante, apellido1_participante, apellido2_participante) # Agregar el participante a la base de datos
+        crear_participante(nombre_participante, apellido1_participante, apellido2_participante) # Agregar el participante a la base de datos
 
     def guardar_apartado(self): # Guardar un apartado
         self.nombre_apartado = self.entry_apartado.get() # Obtener el nombre del apartado
@@ -225,7 +242,7 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
         else: # Si no hay errores
             messagebox.showinfo("Información", "Apartado agregado correctamente.") # Mostrar mensaje de información
 
-        agregar_apartado(self.nombre_apartado) # Agregar el apartado a la base de datos
+        crear_apartado(self.nombre_apartado) # Agregar el apartado a la base de datos
 
     def guardar_puntos(self, nombre_apartado): # Guardar los puntos
         puntos = [] # Lista para guardar los puntos
@@ -236,7 +253,7 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
             puntos.append(punto) # Agregar el punto a la lista
 
         for nombre_punto in puntos: # Recorrer los puntos
-            agregar_punto(nombre_punto, nombre_apartado) # Agregar el punto a la base de datos
+            crear_punto(nombre_punto, nombre_apartado) # Agregar el punto a la base de datos
 
     def guardar_todo(self): # Guardar todo
         self.guardar_apartado() # Guardar el apartado
@@ -260,7 +277,7 @@ class VentanaSuperpuesta: # se crea la clase VentanaSuperpuesta
 
         messagebox.showinfo("Información", "Discusión agregada correctamente.") # Mostrar mensaje de información
 
-        agregar_discusion(apartado_seleccionado, punto_seleccionado, persona_seleccionada, discusion) # Agregar la discusión a la base de datos
+        crear_discusion(apartado_seleccionado, punto_seleccionado, persona_seleccionada, discusion) # Agregar la discusión a la base de datos
 
 ventana = VentanaPrincipal() # Crear la ventana
 ventana.ventana_principal.mainloop() # Mostrar la ventana
