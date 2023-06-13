@@ -109,7 +109,8 @@ class MiAgenda(Agenda):
         return {"Título":self.titulo,"fecha":self.fecha.__str__(),"participantes":self.participantes.asList} # Se retorna la información de la agenda
 
 def crear_agenda(titulo:str) -> None:
-    """Función que crea una instancia de la clase Agenda.
+    """
+    Función que crea una instancia de la clase Agenda.
 
     Args:
         titulo (str): Nombre de la agenda creada.
